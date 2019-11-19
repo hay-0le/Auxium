@@ -25,4 +25,5 @@ module.exports = {
     path: path.resolve(__dirname, 'client/dist'),
 
   },
+  target: 'node'
 };
