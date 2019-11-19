@@ -1,17 +1,10 @@
 import React from 'react';
 
-class Playlists extends React.Component {
-  constructor(props) {
-     super(props);
+const Playlists = (props) => {
 
-     this.state = {}
-  }
-
-  render() {
-    return (
-      <div>Playlists</div>
-    )
-  }
+  return (
+    <div>Playlists go here</div>
+  )
 }
 
 

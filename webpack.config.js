@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack')
 
 module.exports = {
   entry: './client/src/index.jsx',
@@ -10,14 +11,14 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-react'],
+            presets: ['@babel/preset-react', "@babel/env"],
           },
         },
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
-      },
+        use: ['style-loader', 'css-loader']
+      }
     ],
   },
   output: {
@@ -25,5 +26,8 @@ module.exports = {
     path: path.resolve(__dirname, 'client/dist'),
 
   },
-  target: 'node'
+  target: 'node',
+  resolve: {
+    extensions: ["*", ".js", ".jsx"]
+  },
 };

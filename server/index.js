@@ -74,16 +74,16 @@ app.get('/callback', (req, res) => {
       console.log('response: ', response)
       var access_token = body.access_token;
 
-      var options = {
-        url: 'https://api/spotify.com/v1/me',
-        headers: { 'Authorization': 'Bearer' + access_token},
-        json: true
-      }
+      // var options = {
+      //   url: 'https://api/spotify.com/v1/me',
+      //   headers: { 'Authorization': 'Bearer' + access_token},
+      //   json: true
+      // }
 
-      //use access token to access the Spotify APi
-      request.get(options, (err, response, body) => {
-        console.log(body)
-      })
+      // //use access token to access the Spotify APi
+      // request.get(options, (err, response, body) => {
+      //   console.log(body)
+      // })
 
 
       let uri = 'http://locahost:5463/';
