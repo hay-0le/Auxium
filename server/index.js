@@ -6,6 +6,7 @@ const querystring = require('querystring')
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT;
+const controllers = require('./controllers/playlist.js')
 
 var scopes = process.env.SCOPES;
 const redirect_uri = process.env.REDIRECT_URI || 'http://localhost:' + port + '/callback';
@@ -28,16 +29,6 @@ app.use((req, res, next) => {
   next();
 });
 
-//request for authorization
-// app.get('/login', (req, res) => {
-
-//   res.redirect('https://accounts.spotify.com/authorize' +
-//   '?response_type=code' +
-//   '&client_id=' + process.env.CLIENT_ID +
-//   (scopes ? '&scope=' + scopes : '') +
-//   '&redirect_uri=' + redirect_uri);
-// });
-
 app.get('/login', (req, res) => {
   console.log("Hello from log in request")
   res.redirect('https://accounts.spotify.com/authorize?' +
@@ -47,7 +38,6 @@ app.get('/login', (req, res) => {
       scope: 'user-read-private user-read-email',
       redirect_uri: redirect_uri
     }))
-  // res.redirect(301,'https://www.google.com')
 })
 
 //route after login request is made
@@ -74,17 +64,16 @@ app.get('/callback', (req, res) => {
       console.log('response: ', response)
       var access_token = body.access_token;
 
-      var options = {
-        url: 'https://api/spotify.com/v1/me',
-        headers: { 'Authorization': 'Bearer' + access_token},
-        json: true
-      }
+      // var options = {
+      //   url: 'https://api/spotify.com/v1/me',
+      //   headers: { 'Authorization': 'Bearer' + access_token},
+      //   json: true
+      // }
 
-      //use access token to access the Spotify APi
-      request.get(options, (err, response, body) => {
-        console.log(body)
-      })
-
+      // //use access token to access the Spotify APi
+      // request.get(options, (err, response, body) => {
+      //   console.log(body)
+      // })
 
       let uri = 'http://locahost:5463/';
       res.redirect(uri + '?access_token=' + access_token)
@@ -94,19 +83,7 @@ app.get('/callback', (req, res) => {
 
 //username=6auyw95oqfdnzc95jxyk5waqd'
 
-
-      //speficy score for which authorization is sough
-
-      //perfom exchange of the authoriztion code for an access token
-
-      //calling endpoints
-
-
-
-
-// app.get('/', (req, res) => {
-//   res.send("hello from get")
-// })
+app.get('/playlist/:playList', controllers.getPlaylist)
 
 app.listen(port, () => {
   console.log('Listening on port: ', port)

@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:5463/mvp');
+// const config = {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// };
+
+mongoose.connect('mongodb://localhost:27017/mvp', {useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true})
+  .catch(err => {
+    console.log("Error connecting to mongo")
+  });
 
 const db = mongoose.connection;
 
@@ -9,13 +17,23 @@ db.once('open', () => {
   console.log('Mongo Connection Successful!');
 })
 
-let PlaylistSchema = mongoose.Schema({
-  song: String,
-  artist: String,
-  length: Number,
-
+let SongSchema = mongoose.Schema({
+  playlist: {
+    name: String,
+    songs: [
+      {
+        song: String,
+        artist: String,
+        length: Number,
+        coverArt: String
+      }
+    ]
+  }
 })
 
-let Playlist = mongoose.model('Playlist', PlaylistSchema);
+let Song = mongoose.model('Song', SongSchema);
 
-default export Playlist;
+module.exports = {
+  Song,
+  db
+}
