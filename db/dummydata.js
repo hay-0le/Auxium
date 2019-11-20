@@ -61,37 +61,37 @@ var data = [
         {
         "song": "Drop It Likes Its Hot",
         "artist": "Snoop Dogg and some other ppl",
-        "length": 4,
+        "length": 1.59,
         "coverArt": "https://loremflickr.com/320/240/song"
         },
         {
           "song": "Bad Guy",
           "artist": "Billie Eilish",
-          "length": 3.75,
+          "length": 3.01,
           "coverArt": "https://loremflickr.com/320/240/song"
         },
         {
           "song": "Gas Pedal",
           "artist": "Sage the Gemini",
-          "length": 3.5,
+          "length": 2.53,
           "coverArt": "https://loremflickr.com/320/240/song"
         },
         {
-          "song": "Gas Pedal",
-          "artist": "Sage the Gemini",
-          "length": 3.5,
+          "song": "Skeleton",
+          "artist": "Inverness",
+          "length": 3.51,
           "coverArt": "https://loremflickr.com/320/240/song"
         },
         {
-          "song": "Gas Pedal",
-          "artist": "Sage the Gemini",
-          "length": 3.5,
+          "song": "Lost Without You",
+          "artist": "Far Out",
+          "length": 2.41,
           "coverArt": "https://loremflickr.com/320/240/song"
         },
         {
-          "song": "Gas Pedal",
-          "artist": "Sage the Gemini",
-          "length": 3.5,
+          "song": "Lullaby",
+          "artist": "R3HAB",
+          "length": 3.15,
           "coverArt": "https://loremflickr.com/320/240/song"
         }
       ]

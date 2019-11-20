@@ -8,7 +8,7 @@ const Song = ({ song, id, changeSong}) => {
   let coverArt = song.coverArt;
 
   return (
-    <div onClick={changeSong}>
+    <div id={id} onClick={changeSong}>
       {`${id}: ${title} by ${artist} - (${length} minutes)`}
     </div>
   )

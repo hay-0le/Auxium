@@ -43,12 +43,13 @@ class App extends React.Component {
   playSong(e) {
     e.preventDefault();
     console.log('clicked')
-    // let songId = e.target.id;
-    // let playSong = this.state.songs[id];
+    let songId = e.target.id;
+    let playSong = this.state.songs[id];
 
-    // this.setState({
-    //   currentSong: playSong
-    // })
+    this.setState({
+      currentSong: playSong
+    })
+    console.log(songId, this.state.currentSong)
   }
 
   createPlaylist() {
