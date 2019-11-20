@@ -3,10 +3,8 @@ import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import axios from 'axios';
 import PlaylistContainer from './PlaylistContainer.jsx';
-import { data } from '../../../db/dummydata.js'
 
 // require('dotenv').config();
-
 // var Spotify = require('spotify-web-api-js');
 // var spotifyAPI = new Spotify();
 
@@ -16,35 +14,57 @@ class App extends React.Component {
 
     this.state = {
       loggedIn: false,
-      currentSong: data[0]
+      currentSong: null,
+      currentPlaylist: null,
+      songs: [],
+      playlists: ['main']
     }
     this.login = this.login.bind(this);
+    this.getPlaylist = this.getPlaylist.bind(this);
+    this.playSong = this.playSong.bind(this);
   }
 
   login(e) {
     e.preventDefault();
-    // alert('clicked')
-    // console.log(this.state)
-    // axios.get('/login')
-    //   .then(res => {
-    //     console.log('logged in!')
-    //   })
-    //   .catch(err => {
-    //     console.log('error: ', err);
-    //   })
-    // window.location.href.length > 35 ? this.setState({
-    //   loggedIn: true
-    // }) : '';
-    this.setState({
-      loggedIn: true
-    })
+    document.location.href='/login'
+  }
 
-    console.log(this.state)
+  getPlaylist(playList='main') {
+    axios.get(`/playlist/${playList}`)
+      .then(results => {
+        console.log('axios results type of: ', Array.isArray(results.data))
+        this.setState({
+          songs: results.data,
+          currentPlaylist: playList
+        })
+      })
+  }
+
+  playSong(e) {
+    e.preventDefault();
+    console.log('clicked')
+    // let songId = e.target.id;
+    // let playSong = this.state.songs[id];
+
+    // this.setState({
+    //   currentSong: playSong
+    // })
+  }
+
+  createPlaylist() {
+    //add empty playlist to database
+    //add playlist name to state
   }
 
   componentDidMount() {
+    //fix this
+    if (window.location.href.length > 35) {
+      this.setState({
+        loggedIn: true
+      })
+    }
+    this.getPlaylist();
 
-    console.log(data[0])
   }
 
   render() {
@@ -52,12 +72,12 @@ class App extends React.Component {
       <div id='mainpage'>
         {this.state.loggedIn ?
             <div>
-            <PlaylistContainer song={this.state.currentSong}/>
+            <PlaylistContainer  changeSong={this.playSong} playlist={this.state.currentPlaylist} songs={this.state.songs}/>
           </div>
           :
           <div id="spotifyLogin">
             <h2>Log In to Your Spotify</h2>
-            <a href='/login' onClick={this.login}>Log In</a>
+            <button id='login' onClick={this.login}>Click Here to Login</button>
           </div>
           }
 

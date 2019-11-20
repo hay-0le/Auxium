@@ -1,5 +1,5 @@
 {
-  "name": "MPV",
+  "name": "mvp",
   "version": "1.0.0",
   "description": "# Project Name #",
   "main": "index.js",
@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack -d --mode=development --watch",
     "start": "node server/index.js",
-    "start:dev": "nodemon server/index.js -w"
+    "start:dev": "nodemon server/index.js -w",
+    "seed": "node db/seed.js"
   },
   "repository": {
     "type": "git",
