@@ -29,6 +29,14 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
+
+
+//AUTHORIZATION CODE GRANT
+
+//After login button clicked, user redirected to spotify authorization server to input credentials
+//Send client id, scope of access, redirect uri, and response type in headers
 app.get('/login', (req, res) => {
   console.log("Hello from log in request")
   res.redirect('https://accounts.spotify.com/authorize?' +
@@ -40,7 +48,9 @@ app.get('/login', (req, res) => {
     }))
 })
 
-//route after login request is made
+//route after authorization server returns authorization code
+//Send Client ID and Secret code in headers along with authorization code
+//Client then sends authorization code back, to exchange for access token
 app.get('/callback', (req, res) => {
   let code = req.query.code || null;
   let authOptions = {
@@ -57,24 +67,14 @@ app.get('/callback', (req, res) => {
     },
     json: true
   }
+  //Client saves access token, and will use it in the headers to request information from resource server
   request.post(authOptions, (err, response, body) => {
     if (err) {
       console.log('error: ', err)
     } else {
       console.log('response: ', response)
       var access_token = body.access_token;
-
-      // var options = {
-      //   url: 'https://api/spotify.com/v1/me',
-      //   headers: { 'Authorization': 'Bearer' + access_token},
-      //   json: true
-      // }
-
-      // //use access token to access the Spotify APi
-      // request.get(options, (err, response, body) => {
-      //   console.log(body)
-      // })
-
+      
       let uri = 'http://locahost:5463/';
       res.redirect(uri + '?access_token=' + access_token)
     }
@@ -88,3 +88,17 @@ app.get('/playlist/:playList', controllers.getPlaylist)
 app.listen(port, () => {
   console.log('Listening on port: ', port)
 })
+
+
+
+  
+      // var options = {
+      //   url: 'https://api/spotify.com/v1/me',
+      //   headers: { 'Authorization': 'Bearer' + access_token},
+      //   json: true
+      // }
+
+      // //use access token to access the Spotify APi
+      // request.get(options, (err, response, body) => {
+      //   console.log(body)
+      // })
