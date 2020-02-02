@@ -1,15 +1,17 @@
-const express = require('express');
 const request = require('request');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const querystring = require('querystring')
-require('dotenv').config();
-const app = express();
-const port = process.env.PORT;
-const controllers = require('./controllers/playlist.js')
+const querystring = require('querystring');
 
+require('dotenv').config();
+const port = process.env.PORT;
 var scopes = process.env.SCOPES;
 const redirect_uri = process.env.REDIRECT_URI || 'http://localhost:' + port + '/callback';
+
+const controllers = require('./controllers/playlist.js')
+
+const express = require('express');
+const app = express();
 
 app.use(cors());
 app.use(cookieParser())
