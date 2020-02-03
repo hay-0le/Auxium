@@ -2,7 +2,7 @@ import React from 'react';
 import Song from './Song.jsx';
 
 const SongsList = ({ songs, playlist, changeSong}) => {
-  console.log('in song list:', changeSong)
+
   return (
 
      <div>
