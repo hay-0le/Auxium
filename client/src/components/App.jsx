@@ -18,7 +18,7 @@ class App extends React.Component {
       currentSong: null,
       currentPlaylist: null,
       songs: [],
-      playlists: ['main']
+      playlists: ['main', 'code']
     }
 
     if (params.access_token) {
@@ -58,23 +58,28 @@ class App extends React.Component {
   getPlaylist(playList='main') {
     axios.get(`/playlist/${playList}`)
       .then(results => {
-        console.log('axios results type of: ', Array.isArray(results.data))
+        let nowPlaying = results.data[0];
+
         this.setState({
           songs: results.data,
+          currentSong: nowPlaying,
           currentPlaylist: playList
         })
+      })
+      .catch(err => {
+        console.log(err)
       })
   }
 
   playSong(e) {
     e.preventDefault();
-    console.log('clicked')
-    // let songId = e.target.id;
-    // let playSong = this.state.songs[id];
 
-    // this.setState({
-    //   currentSong: playSong
-    // })
+    let songId = e.target.id;
+    let playSong = this.state.songs[songId];
+
+    this.setState({
+      currentSong: playSong
+    })
   }
 
   createPlaylist() {
@@ -105,7 +110,8 @@ class App extends React.Component {
       <div id='mainpage'>
         {this.state.loggedIn ?
             <div>
-            <PlaylistContainer  changeSong={this.playSong} playlist={this.state.currentPlaylist} songs={this.state.songs}/>
+            <Player currentSong={this.state.currentSong}/>
+            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylist} songs={this.state.songs}/>
           </div>
           :
           <div id="spotifyLogin">

@@ -2,14 +2,14 @@ import React from 'react';
 import SongsList from './SongsList.jsx';
 import Playlists from './Playlists.jsx';
 
-const PlaylistContainer = ({ songs, playlist, changeSong}) => {
+const PlaylistContainer = ({ songs, playlist, playlists, changeSong}) => {
 
 
   return (
-    <div>
+    <div id="playlistcontainer">
       <h3>Player: </h3>
     <SongsList changeSong={changeSong} playlist={playlist} songs={songs}/>
-    <Playlists />
+    <Playlists playlists={playlists}/>
     </div>
   )
 }

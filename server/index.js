@@ -62,7 +62,9 @@ app.get('/login', (req, res) => {
     }))
 })
 
-//route after login request is made
+//route after authorization server returns authorization code
+//Send Client ID and Secret code in headers along with authorization code
+//Client then sends authorization code back, to exchange for access token
 app.get('/callback', (req, res) => {
   let code = req.query.code || null;
   let state = req.query.state || null;
@@ -160,3 +162,17 @@ app.get('/playlist/:addSong', controllers.addSong);
 app.listen(port, () => {
   console.log('Listening on port: ', port)
 })
+
+
+
+
+      // var options = {
+      //   url: 'https://api/spotify.com/v1/me',
+      //   headers: { 'Authorization': 'Bearer' + access_token},
+      //   json: true
+      // }
+
+      // //use access token to access the Spotify APi
+      // request.get(options, (err, response, body) => {
+      //   console.log(body)
+      // })

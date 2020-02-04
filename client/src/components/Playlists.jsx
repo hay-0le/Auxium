@@ -1,9 +1,16 @@
 import React from 'react';
 
-const Playlists = (props) => {
+const Playlists = ({ playlists }) => {
 
   return (
-    <div>Playlists go here</div>
+    <div>
+      <br/>
+      <h3>Your Playlists: </h3>
+      {playlists.map((pl, i) => {
+        return <div className='playlist' key={i}>{pl}</div>
+      })}
+
+    </div>
   )
 }
 
