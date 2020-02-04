@@ -43,6 +43,7 @@ let buildRandomString = (length) => {
 
 app.get('/', (req, res) => {
   //home page
+  res.send();
 })
 
 
@@ -110,7 +111,8 @@ app.get('/callback', (req, res) => {
 
         //use access token to access the Spotify APi
         request.get(options, (err, response, body) => {
-          console.log(body);
+          console.log("body", body);
+          console.log("response", response)
         })
 
         res.redirect('http://localhost:3001/#' +
