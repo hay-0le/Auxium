@@ -2,6 +2,7 @@ const request = require('request');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const querystring = require('querystring');
+const path = require('path');
 
 require('dotenv').config();
 const port = process.env.PORT;
@@ -43,7 +44,7 @@ let buildRandomString = (length) => {
 
 app.get('/', (req, res) => {
   //home page
-  res.send();
+  res.send("Hello Haley");
 })
 
 
@@ -85,7 +86,8 @@ app.get('/callback', (req, res) => {
         grant_type: 'authorization_code'
       },
       headers: {
-        'Authorization': 'Basic ' + (new Buffer(
+
+        'Authorization': 'Basic ' + (new Buffer.from(
           process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET
           ).toString('base64'))
       },
