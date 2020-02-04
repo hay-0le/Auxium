@@ -3,15 +3,16 @@ import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import axios from 'axios';
 import PlaylistContainer from './PlaylistContainer.jsx';
+import queryString from 'query-string';
 
 // require('dotenv').config();
-// var Spotify = require('spotify-web-api-js');
-// var spotifyAPI = new Spotify();
+var Spotify = require('spotify-web-api-js');
+var spotifyAPI = new Spotify();
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-
+    let params = getHashParams();
     this.state = {
       loggedIn: false,
       currentSong: null,
@@ -19,9 +20,34 @@ class App extends React.Component {
       songs: [],
       playlists: ['main']
     }
+
+    if (params.access_token) {
+      spotifyWebApi.setAccessToken(params.access_token);
+    }
+
     this.login = this.login.bind(this);
     this.getPlaylist = this.getPlaylist.bind(this);
     this.playSong = this.playSong.bind(this);
+  }
+
+  getHashParams() {
+    var hashParams = {};
+    var e, r = /([^&;=]+)=?([^&;]*)/g,
+        q = window.location.hash.substring(1);
+    while ( e = r.exec(q)) {
+       hashParams[e[1]] = decodeURIComponent(e[2]);
+    }
+    return hashParams;
+  }
+
+  getNowPlaying () {
+    spotifyWebApi.getMyCurrentPlaybackState()
+      .then(result => {
+        // this.setState({
+        //   currentSong:
+        // })
+        console.log(result);
+      })
   }
 
   login(e) {
@@ -58,12 +84,19 @@ class App extends React.Component {
 
   componentDidMount() {
     //fix this
-    if (window.location.href.length > 35) {
-      this.setState({
-        loggedIn: true
-      })
-    }
-    this.getPlaylist();
+    // let access_token = queryString.parse(window.location.search).access_token;
+    // console.log(access_token)
+    // if (!access_token) {
+    //   return;
+    // }
+
+    // axios.get('http://api.spotify.com/v1/me')
+
+
+    //   this.setState({
+    //     loggedIn: true
+    //   })
+
 
   }
 
