@@ -26,10 +26,24 @@ class App extends React.Component {
     //   spotifyWebApi.setAccessToken(params.access_token);
     // }
 
-    // this.login = this.login.bind(this);
-    this.getPlaylist = this.getPlaylist.bind(this);
-    this.playSong = this.playSong.bind(this);
+    this.login = this.login.bind(this);
+    // this.getPlaylist = this.getPlaylist.bind(this);
+    // this.playSong = this.playSong.bind(this);
     this.searchHandler = this.searchHandler.bind(this);
+  }
+
+  login(e) {
+    e.preventDefault();
+
+    console.log("clicked")
+    // axios.get('http:/login')
+    //   .then(response => {
+    //     console.log("Response", response)
+    //   })
+    //   .catch(err => {
+    //     console.log("Error:", err)
+    //   })
+    window.location = 'http://localhost:3001/login'
   }
 
   getHashParams() {
@@ -41,16 +55,6 @@ class App extends React.Component {
     }
     return hashParams;
   }
-
-  // getNowPlaying () {
-  //   spotifyWebApi.getMyCurrentPlaybackState()
-  //     .then(result => {
-  //       // this.setState({
-  //       //   currentSong:
-  //       // })
-  //       console.log(result);
-  //     })
-  // }
 
   searchHandler(e) {
     // Prevent button click from submitting form
@@ -67,37 +71,48 @@ class App extends React.Component {
 
   }
 
-  getPlaylist(playList='main') {
-    axios.get(`/playlist/${playList}`)
-      .then(results => {
-        let nowPlaying = results.data[0];
+  // getNowPlaying () {
+  //   spotifyWebApi.getMyCurrentPlaybackState()
+  //     .then(result => {
+  //       // this.setState({
+  //       //   currentSong:
+  //       // })
+  //       console.log(result);
+  //     })
+  // }
 
-        this.setState({
-          songs: results.data,
-          currentSong: nowPlaying,
-          currentPlaylist: playList
-        })
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
 
-  playSong(e) {
-    e.preventDefault();
+  // getPlaylist(playList='main') {
+  //   axios.get(`/playlist/${playList}`)
+  //     .then(results => {
+  //       let nowPlaying = results.data[0];
 
-    let songId = e.target.id;
-    let playSong = this.state.songs[songId];
+  //       this.setState({
+  //         songs: results.data,
+  //         currentSong: nowPlaying,
+  //         currentPlaylist: playList
+  //       })
+  //     })
+  //     .catch(err => {
+  //       console.log(err)
+  //     })
+  // }
 
-    this.setState({
-      currentSong: playSong
-    })
-  }
+  // playSong(e) {
+  //   e.preventDefault();
 
-  createPlaylist() {
-    //add empty playlist to database
-    //add playlist name to state
-  }
+  //   let songId = e.target.id;
+  //   let playSong = this.state.songs[songId];
+
+  //   this.setState({
+  //     currentSong: playSong
+  //   })
+  // }
+
+  // createPlaylist() {
+  //   //add empty playlist to database
+  //   //add playlist name to state
+  // }
 
   componentDidMount() {
 
