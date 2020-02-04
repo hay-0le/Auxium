@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import axios from 'axios';
 import PlaylistContainer from './PlaylistContainer.jsx';
+import Player from './Player.jsx';
 import queryString from 'query-string';
 
 // require('dotenv').config();
@@ -12,7 +13,7 @@ var spotifyAPI = new Spotify();
 class App extends React.Component {
   constructor(props) {
     super(props);
-    let params = getHashParams();
+
     this.state = {
       loggedIn: false,
       currentSong: null,
@@ -21,13 +22,14 @@ class App extends React.Component {
       playlists: ['main', 'code']
     }
 
-    if (params.access_token) {
-      spotifyWebApi.setAccessToken(params.access_token);
-    }
+    // if (params.access_token) {
+    //   spotifyWebApi.setAccessToken(params.access_token);
+    // }
 
-    this.login = this.login.bind(this);
+    // this.login = this.login.bind(this);
     this.getPlaylist = this.getPlaylist.bind(this);
     this.playSong = this.playSong.bind(this);
+    this.searchHandler = this.searchHandler.bind(this);
   }
 
   getHashParams() {
@@ -40,19 +42,29 @@ class App extends React.Component {
     return hashParams;
   }
 
-  getNowPlaying () {
-    spotifyWebApi.getMyCurrentPlaybackState()
-      .then(result => {
-        // this.setState({
-        //   currentSong:
-        // })
-        console.log(result);
-      })
-  }
+  // getNowPlaying () {
+  //   spotifyWebApi.getMyCurrentPlaybackState()
+  //     .then(result => {
+  //       // this.setState({
+  //       //   currentSong:
+  //       // })
+  //       console.log(result);
+  //     })
+  // }
 
-  login(e) {
+  searchHandler(e) {
+    // Prevent button click from submitting form
     e.preventDefault();
-    document.location.href='/login'
+    let newSong = document.getElementById('addInput').value;
+    console.log('clicked: ', newSong)
+
+    spotifyAPI.getArtistAlbums('43ZHCT0cAZBISjO8DG9PnE')
+    .then(function(data) {
+      console.log('Artist albums', data);
+    }, function(err) {
+      console.error(err);
+    });
+
   }
 
   getPlaylist(playList='main') {
@@ -88,19 +100,17 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    //fix this
-    // let access_token = queryString.parse(window.location.search).access_token;
-    // console.log(access_token)
-    // if (!access_token) {
-    //   return;
-    // }
 
-    // axios.get('http://api.spotify.com/v1/me')
+    let access_token = this.getHashParams().access_token;
+    console.log("access toke", access_token);
 
+    if (access_token) {
+      this.setState({
+        loggedIn: true
+      })
 
-    //   this.setState({
-    //     loggedIn: true
-    //   })
+      spotifyAPI.setAccessToken(access_token);
+    }
 
 
   }
@@ -112,7 +122,24 @@ class App extends React.Component {
             <div>
             <Player currentSong={this.state.currentSong}/>
             <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylist} songs={this.state.songs}/>
+            <div id="search-form">
+              <form className="form" id="addItemForm">
+                <input
+                  type="text"
+                  className="input"
+                  id="addInput"
+                  placeholder="Search the title of a song"
+                />
+                <button className="button is-info" onClick={this.searchHandler}>
+                  Add Song
+                </button>
+              </form>
+            </div>
           </div>
+
+
+
+
           :
           <div id="spotifyLogin">
             <h2>Log In to Your Spotify</h2>
