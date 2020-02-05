@@ -29,15 +29,16 @@ pool.on('connect', () => {
 
     ALTER TABLE auxium.playlists OWNER TO postgres;
 
-    CREATE TABLE IF NOT EXISTS auxium.song (
+    CREATE TABLE IF NOT EXISTS auxium.songs (
       songid integer NOT NULL,
       url character varying(200),
+      href character varying(200),
       title character varying(50),
-      artist character varying(50),
+      artists character varying(50),
       album character varying(50),
       year integer,
       duration integer,
-      CONSTRAINT playlist_pk PRIMARY KEY (playlistid)
+      CONSTRAINT song_pk PRIMARY KEY (songid)
     )
 
     ALTER TABLE auxium.song OWNER TO postgres;
