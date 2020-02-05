@@ -1,9 +1,15 @@
 import React from 'react';
+import defaultImg from "../../dist/musicPlayerImg.png";
 
 const Player = ({currentSong}) => {
   if (currentSong === null) {
     return (
-      <div></div>
+      <div id="player">
+        <h2>Currently Playing:</h2>
+          <img src={defaultImg} id='currentSong' height="300px" width="500px"/>
+          <h3>- (No song currently playing) -</h3>
+          <h4>{"____"}  by {"____"}</h4>
+      </div>
       )
     } else {
       let coverArt = currentSong.coverArt;
