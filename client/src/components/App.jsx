@@ -19,9 +19,10 @@ class App extends React.Component {
       loggedIn: false,
       refresh_token: null,
       currentSong: null,
-      currentPlaylist: null,
+      currentPlaylist: [],
+      currentPlaylistName: "Main",
       songs: [],
-      playlists: ['main', 'code'],
+      playlists: ['Main', 'Code'],
       currentSearchResults: []
     }
 
@@ -31,6 +32,7 @@ class App extends React.Component {
     this.searchHandler = this.searchHandler.bind(this);
     this.refreshAccess = this.refreshAccess.bind(this);
     this.resultsHandler = this.resultsHandler.bind(this);
+    this.savePlaylist = this.savePlaylist.bind(this);
   }
 
   login(e) {
@@ -47,22 +49,27 @@ class App extends React.Component {
     window.location = 'http://localhost:3001/login'
   }
 
+
   refreshAccess() {
     let refresh_token = this.state.refresh_token;
-    console.log("refreshing access")
+    // console.log("refreshing access with token:", refresh_token)
 
-    axios.get(`http://localhost:3001/refresh_token`)
-    .then(response => {
-
-      if (response.status === 202) {
-        console.log(response)
+    axios.get(`http://localhost:3001/refresh_token`, {
+      params: {
+        refresh_token: refresh_token
       }
+    })
+    .then((response) => {
+      spotifyAPI.setAccessToken(response.access_token);
+      //refresh page?
 
-    }).catch(error => {
-      console.log(error.response)
+    })
+    .catch((error) => {
+      console.log(error);
     })
 
   }
+
 
 
   getHashParams() {
@@ -75,19 +82,24 @@ class App extends React.Component {
     return hashParams;
   }
 
+
   searchHandler() {
     let newSong = document.getElementById('addInput').value;
-    console.log('clicked: ', newSong)
 
     spotifyAPI.searchTracks(newSong)
-      .then(function(data) {
-        console.log('Artist albums', data.tracks.items);
+      .then((data) => {
+        let searchResults = data.tracks.items;
+        // console.log(`Results for ${newSong}:`, searchResults);
+
+        this.setState({
+          currentSearchResults: searchResults
+        })
+
+
 
       }).catch(err => {
         if (err.status === 401) {
           if (confirm("You have been logged out of Spotify. To log back in, press 'Okay'")) {
-            console.log("confirmed")
-
             this.refreshAccess();
 
           }
@@ -100,8 +112,41 @@ class App extends React.Component {
 
   resultsHandler (e) {
     e.preventDefault();
+
+    let songId = e.target.id;
+    let newSong = this.state.currentSearchResults[songId];
+
+    let updatedPlaylist = this.state.currentPlaylist
+    updatedPlaylist.push(newSong);
+
+    console.log(this.state.currentPlaylist)
+    this.setState({
+      currentPlaylist: updatedPlaylist
+    })
+
+    //update playlist in db
+    this.savePlaylist(newSong);
+
+
   }
 
+  savePlaylist (newSong) {
+    console.log("save playlist:", this.state.currentPlaylist)
+    axios.post(`http://localhost:3001/db/update_playlist`, {
+      params: {
+        playlist: this.state.currentPlaylistName,
+        song: newSong
+      }
+    })
+    .then((response) => {
+      console.log("Success saving playlist to database: ", response)
+      //refresh page?
+
+    })
+    .catch((error) => {
+      console.log("Error adding updating playlist to database:", error);
+    })
+  }
   // getNowPlaying () {
   //   spotifyWebApi.getMyCurrentPlaybackState()
   //     .then(result => {
@@ -146,12 +191,8 @@ class App extends React.Component {
   // }
 
   componentDidMount() {
-
     let access_token = this.getHashParams().access_token;
     let refresh_token = this.getHashParams().refresh_token;
-
-    // console.log("access toke", access_token);
-    // console.log("refresh toke", refresh_token);
 
     if (access_token) {
       this.setState({
@@ -163,7 +204,12 @@ class App extends React.Component {
 
   }
 
+  componentWillUnmount() {
+    this.savePlaylist();
+  }
+
   render() {
+    console.log("LOKKKKOI", this.state.currentSearchResults)
     return (
       <div id='mainpage'>
         {this.state.loggedIn ?
@@ -188,7 +234,7 @@ class App extends React.Component {
                   </form>
                 </div>
               </div>
-              <SearchResults playlist={this.state.currentPlaylist} addSong={this.resultsHandler} results={this.currentSearchResults} />
+              <SearchResults playlist={this.state.currentPlaylist} addSong={this.resultsHandler} results={this.state.currentSearchResults} />
 
             </div>
           </div>
