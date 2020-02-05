@@ -3,18 +3,20 @@ import SearchedResult from './SearchedResult';
 
 
 const SearchResults = ({ playlist, addSong, results }) => {
+console.log("results", results)
 
-  return (
+ return results ?
+    (
     <div id="search-results">
       {results.map((song, i) => {
         return (<div key={i}>
-          <SearchedResult key={i} title={song.name} artist={song.artists[0].name} album={song.album.name}/>
+          <SearchedResult id={i} title={song.name} artist={song.artists[0].name} album={song.album.name} addSong={addSong}/>
 
          </div>)
       })}
-
     </div>
-  )
+    ) : null;
+
 }
 
 
