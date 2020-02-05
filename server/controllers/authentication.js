@@ -1,4 +1,22 @@
-let login = (req,rest) => {
+const querystring = require('querystring');
+const request = require('request');
+
+require('dotenv').config();
+
+const redirect_uri = 'http://localhost:' + process.env.PORT + '/callback';
+//First API call for O-Auth
+  //Sends random string as state,
+let login = (req, res) => {
+  let buildRandomString = (length) => {
+    let str = '';
+    let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    while (str.length < length) {
+      str += letters[Math.floor(Math.random() * letters.length)];
+    }
+    return str;
+  }
+
   let state = buildRandomString(16);
   let scope = 'user-read-email user-read-private user-read-playback-state streaming';
   res.cookie('spotify_auth_state', state);
