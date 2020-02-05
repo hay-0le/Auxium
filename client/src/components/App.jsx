@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import axios from 'axios';
-import PlaylistContainer from './PlaylistContainer.jsx';
 import Player from './Player.jsx';
 import queryString from 'query-string';
+import PlaylistContainer from './PlaylistContainer.jsx';
+import SearchResults from './SearchResults.jsx';
 
 // require('dotenv').config();
 var Spotify = require('spotify-web-api-js');
@@ -16,20 +17,20 @@ class App extends React.Component {
 
     this.state = {
       loggedIn: false,
+      refresh_token: null,
       currentSong: null,
       currentPlaylist: null,
       songs: [],
-      playlists: ['main', 'code']
+      playlists: ['main', 'code'],
+      currentSearchResults: []
     }
 
-    // if (params.access_token) {
-    //   spotifyWebApi.setAccessToken(params.access_token);
-    // }
-
-    this.login = this.login.bind(this);
     // this.getPlaylist = this.getPlaylist.bind(this);
     // this.playSong = this.playSong.bind(this);
+    this.login = this.login.bind(this);
     this.searchHandler = this.searchHandler.bind(this);
+    this.refreshAccess = this.refreshAccess.bind(this);
+    this.resultsHandler = this.resultsHandler.bind(this);
   }
 
   login(e) {
@@ -46,6 +47,24 @@ class App extends React.Component {
     window.location = 'http://localhost:3001/login'
   }
 
+  refreshAccess() {
+    let refresh_token = this.state.refresh_token;
+    console.log("refreshing access")
+
+    axios.get(`http://localhost:3001/refresh_token`)
+    .then(response => {
+
+      if (response.status === 202) {
+        console.log(response)
+      }
+
+    }).catch(error => {
+      console.log(error.response)
+    })
+
+  }
+
+
   getHashParams() {
     var hashParams = {};
     var e, r = /([^&;=]+)=?([^&;]*)/g,
@@ -56,19 +75,31 @@ class App extends React.Component {
     return hashParams;
   }
 
-  searchHandler(e) {
-    // Prevent button click from submitting form
-    e.preventDefault();
+  searchHandler() {
     let newSong = document.getElementById('addInput').value;
     console.log('clicked: ', newSong)
 
-    spotifyAPI.getArtistAlbums('43ZHCT0cAZBISjO8DG9PnE')
-    .then(function(data) {
-      console.log('Artist albums', data);
-    }, function(err) {
-      console.error(err);
+    spotifyAPI.searchTracks(newSong)
+      .then(function(data) {
+        console.log('Artist albums', data.tracks.items);
+
+      }).catch(err => {
+        if (err.status === 401) {
+          if (confirm("You have been logged out of Spotify. To log back in, press 'Okay'")) {
+            console.log("confirmed")
+
+            this.refreshAccess();
+
+          }
+        } else {
+          console.log("Error retrieving song.. ", err)
+        }
     });
 
+  }
+
+  resultsHandler (e) {
+    e.preventDefault();
   }
 
   // getNowPlaying () {
@@ -117,16 +148,18 @@ class App extends React.Component {
   componentDidMount() {
 
     let access_token = this.getHashParams().access_token;
-    console.log("access toke", access_token);
+    let refresh_token = this.getHashParams().refresh_token;
+
+    // console.log("access toke", access_token);
+    // console.log("refresh toke", refresh_token);
 
     if (access_token) {
       this.setState({
-        loggedIn: true
+        loggedIn: true,
+        refresh_token: refresh_token
       })
-
       spotifyAPI.setAccessToken(access_token);
     }
-
 
   }
 
@@ -137,18 +170,26 @@ class App extends React.Component {
             <div>
             <Player currentSong={this.state.currentSong}/>
             <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylist} songs={this.state.songs}/>
-            <div id="search-form">
-              <form className="form" id="addItemForm">
-                <input
-                  type="text"
-                  className="input"
-                  id="addInput"
-                  placeholder="Search the title of a song"
-                />
-                <button className="button is-info" onClick={this.searchHandler}>
-                  Add Song
-                </button>
-              </form>
+
+            <div id="search">
+              <div id="search-bar">
+                <div id="search-bar">
+
+                  <form className="form" id="addItemForm">
+                    <input
+                      type="text"
+                      className="input"
+                      id="addInput"
+                      placeholder="Search the title of a song"
+                    />
+                    <button className="button is-info" onClick={this.searchHandler}>
+                      Add Song
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <SearchResults playlist={this.state.currentPlaylist} addSong={this.resultsHandler} results={this.currentSearchResults} />
+
             </div>
           </div>
 
