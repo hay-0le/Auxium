@@ -25,18 +25,6 @@ Once the project moves into development, the press release can be used as a touc
 ## Customer Quote ##
   > "This application saved my life!" -Future customer, probably
 
-## API routes
-To render different items in the browser: http:localhost:{ port }/?{ id# 1 - 10M }
-
-|CRUD API ENDPOINTS           | DESCRIPTION                                                                          |
-|-----------------------------|--------------------------------------------------------------------------------------|
-|GET      /login              | Begins O-Auth process:equesting authorization to access data with user account login |
-|GET      /callback           | Requests access and refresh tokens to be used for requests to Spotify API            |
-|GET      /refresh_token      | Sends refresh_token requesting new access_token (expires after 1 hour)               |
-|POST     /db/update_playlist | Adds song to playlist in database                                                    |
-|DELETE   /db/delete_song     | Deletes song in database                                                             |
-|GET      /db/get_playlist    | Retrieves playlist from the database                                                 |
-
 ## Requirements
 
 - pgAdmin or psql shell, to create the postgreSQL database that will be populated
@@ -67,3 +55,14 @@ npm run build
 3. Run in browser at: 
 ```http://localhost:3001/```
 
+## API routes
+To render different items in the browser: http:localhost:{ port }/?{ id# 1 - 10M }
+
+|CRUD API ENDPOINTS           | DESCRIPTION                                                                          |
+|-----------------------------|--------------------------------------------------------------------------------------|
+|GET      /login              | Begins O-Auth process:equesting authorization to access data with user account login |
+|GET      /callback           | Requests access and refresh tokens to be used for requests to Spotify API            |
+|GET      /refresh_token      | Sends refresh_token requesting new access_token (expires after 1 hour)               |
+|POST     /db/update_playlist | Adds song to playlist in database                                                    |
+|DELETE   /db/delete_song     | Deletes song in database                                                             |
+|GET      /db/get_playlist    | Retrieves playlist from the database                                                 |
