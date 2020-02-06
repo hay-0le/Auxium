@@ -40,31 +40,26 @@ app.use((req, res, next) => {
   next();
 });
 
-
-app.get('/', (req, res) => {
-  //home page
-  res.send("Hello Haley");
-})
-
-
 ///// AUTHENTICATION ROUTES /////
 app.get('/login', authentication.login);
 
 //route after authorization server returns authorization code
-//Send Client ID and Secret code in headers along with authorization code
-//Client then sends authorization code back, to exchange for access token
+  //Send Client ID and Secret code in headers along with authorization code --> Client then sends authorization code back, to exchange for access token
 app.get('/callback', authentication.getAccessToken);
 
 //Will need to request new access token after one hour --> use refresh token to do so
 app.get('/refresh_token', authentication.getRefreshToken);
 
 
-
 ///// DATABASE ROUTES /////
-// app.get('/playlist/:playList', controllers.getPlaylist);
 
-// app.get('/playlist/:addSong', controllers.addSong);
+app.post('/db/update_playlist', playlist.addSong);
 
+app.post('/db/create_playlist', playlist.addPlaylist);
+
+app.delete('/db/delete_song', playlist.deleteSong);
+
+app.get('/db/get_playlist', playlist.getPlaylist);
 
 
 app.listen(port, () => {
