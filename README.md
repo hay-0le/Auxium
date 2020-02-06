@@ -24,7 +24,7 @@ Once the project moves into development, the press release can be used as a touc
 So the objective of this application was to allow the user to gather their favorite songs in one place, no matter its source. 
 
 ## Customer Quote ##
-  > "This application saved my life!" -Future customer, probably
+  > "This application saved my life!" -Future User (probably)
 
 ## Requirements
 
