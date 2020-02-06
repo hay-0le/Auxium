@@ -4,8 +4,10 @@ const request = require('request');
 require('dotenv').config();
 
 const redirect_uri = 'http://localhost:' + process.env.PORT + '/callback';
+
+
 //First API call for O-Auth
-  //Sends random string as state,
+  //Sends random string as state, along with credentials to request access to data (prompts user to login to their account)
 let login = (req, res) => {
   let buildRandomString = (length) => {
     let str = '';
@@ -31,6 +33,7 @@ let login = (req, res) => {
     }))
 }
 
+//requests access token and refresh token
 let getAccessToken = (req, res) => {
 
   let code = req.query.code || null;
@@ -96,12 +99,17 @@ let getAccessToken = (req, res) => {
 
 }
 
+
+//request new access token after one hour, using refresh token
 let getRefreshToken = (req, res) => {
+
   let refresh_token = req.query.refresh_token;
+
   let authOptions = {
     url: 'https://accounts.spotify.com/api/token',
-    headers: {
-      'Authorization': 'Basic' + (new Buffer(process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET).toString)
+    data: {
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env_CLIENT_ID
     },
     form: {
       grant_type: 'refresh_token',
@@ -109,13 +117,16 @@ let getRefreshToken = (req, res) => {
     },
     json: true
   }
-
+console.log("authOptions", authOptions)
   request.post(authOptions, (err, response, body) => {
+    console.log("BODY BODY", response.query)
     if (!err && response.statusCode === 200) {
       let access_token = body.access_token;
       res.send({
         'access_token': access_token
       });
+    } else {
+      console.log("Error with refresh_token:", response.body.error)
     }
   });
 
