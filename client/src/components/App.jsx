@@ -17,12 +17,13 @@ class App extends React.Component {
 
     this.state = {
       loggedIn: false,
+      user: null,
       refresh_token: null,
       currentSong: null,
       currentPlaylist: [],
-      currentPlaylistName: "Main",
-      songs: [],
-      playlists: ['Main', 'Code'],
+      currentPlaylistName: null,
+      playlists: [],
+      lastPlaylistId: 1,
       currentSearchResults: []
     }
 
@@ -32,6 +33,7 @@ class App extends React.Component {
     this.searchHandler = this.searchHandler.bind(this);
     this.refreshAccess = this.refreshAccess.bind(this);
     this.resultsHandler = this.resultsHandler.bind(this);
+    this.createPlaylist = this.createPlaylist.bind(this);
     this.savePlaylist = this.savePlaylist.bind(this);
   }
 
@@ -71,7 +73,7 @@ class App extends React.Component {
   }
 
 
-
+  //pulls access and refresh tokens from url
   getHashParams() {
     var hashParams = {};
     var e, r = /([^&;=]+)=?([^&;]*)/g,
@@ -82,20 +84,17 @@ class App extends React.Component {
     return hashParams;
   }
 
-
+  //searhes spotify (will eventually be able to chose to search songs, artists, or albums specifically)
   searchHandler() {
-    let newSong = document.getElementById('addInput').value;
+    let newSong = document.getElementById('addSong').value;
 
     spotifyAPI.searchTracks(newSong)
       .then((data) => {
         let searchResults = data.tracks.items;
-        // console.log(`Results for ${newSong}:`, searchResults);
 
         this.setState({
           currentSearchResults: searchResults
         })
-
-
 
       }).catch(err => {
         if (err.status === 401) {
@@ -109,6 +108,7 @@ class App extends React.Component {
     });
 
   }
+
 
   resultsHandler (e) {
     e.preventDefault();
@@ -124,11 +124,11 @@ class App extends React.Component {
       currentPlaylist: updatedPlaylist
     })
 
-    //update playlist in db
+    //update playlist by adding song to db
     this.savePlaylist(newSong);
 
-
   }
+
 
   savePlaylist (newSong) {
     console.log("save playlist:", this.state.currentPlaylist)
@@ -147,6 +147,57 @@ class App extends React.Component {
       console.log("Error adding updating playlist to database:", error);
     })
   }
+
+
+  // getPlaylist(playlist='main') {
+  //   axios.get('/db/update_playlist', {
+  //     params: {
+  //       playlist: playlist
+  //     }
+  //   })
+  //     .then(results => {
+  //       let nowPlaying = results.data[0];
+
+  //       this.setState({
+  //         currentPlaylist: results.data,
+  //         currentSong: nowPlaying,
+  //         currentPlaylistName: playlist
+  //       })
+  //     })
+  //     .catch(err => {
+  //       console.log(err)
+  //     })
+  // }
+
+
+  createPlaylist() {
+    let newPlaylist = document.getElementById('add-playlist').value;
+    let newPlaylistId = this.state.lastPlaylistId;
+
+    axios.post(`http://localhost:3001/db/create_playlist`, {
+      params: {
+        newPlaylist: newPlaylist,
+        newPlaylistId: newPlaylistId
+      }
+    }).then(data => {
+      //increment lastplaylist id
+      let updatedPlaylists = this.state.playlists;
+      updatedPlaylists.push(newPlaylist);
+
+      this.setState({
+        lastPlaylistId: newPlaylistId + 1,
+        playlists: updatedPlaylists
+
+      })
+      //add new playlist to playlists in state
+      //if no current playlist, set it
+    })
+    .catch(err => {
+      console.log("ERROR creating new playlist: ", err);
+    })
+  }
+
+
   // getNowPlaying () {
   //   spotifyWebApi.getMyCurrentPlaybackState()
   //     .then(result => {
@@ -157,22 +208,6 @@ class App extends React.Component {
   //     })
   // }
 
-
-  // getPlaylist(playList='main') {
-  //   axios.get(`/playlist/${playList}`)
-  //     .then(results => {
-  //       let nowPlaying = results.data[0];
-
-  //       this.setState({
-  //         songs: results.data,
-  //         currentSong: nowPlaying,
-  //         currentPlaylist: playList
-  //       })
-  //     })
-  //     .catch(err => {
-  //       console.log(err)
-  //     })
-  // }
 
   // playSong(e) {
   //   e.preventDefault();
@@ -185,10 +220,6 @@ class App extends React.Component {
   //   })
   // }
 
-  // createPlaylist() {
-  //   //add empty playlist to database
-  //   //add playlist name to state
-  // }
 
   componentDidMount() {
     let access_token = this.getHashParams().access_token;
@@ -197,11 +228,14 @@ class App extends React.Component {
     if (access_token) {
       this.setState({
         loggedIn: true,
+        user: 'haley',
         refresh_token: refresh_token
       })
       spotifyAPI.setAccessToken(access_token);
     }
 
+    //get playlists, set first one to currentPlaylist in state
+      //if not playlists add default one 'Main'
   }
 
   componentWillUnmount() {
@@ -215,7 +249,7 @@ class App extends React.Component {
         {this.state.loggedIn ?
             <div>
             <Player currentSong={this.state.currentSong}/>
-            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylist} songs={this.state.songs}/>
+            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylistName} songs={this.state.currentPlaylist} addPlaylist={this.createPlaylist} />
 
             <div id="search">
               <div id="search-bar">
@@ -225,7 +259,7 @@ class App extends React.Component {
                     <input
                       type="text"
                       className="input"
-                      id="addInput"
+                      id="addSong"
                       placeholder="Search the title of a song"
                     />
                     <button className="button is-info" onClick={this.searchHandler}>
