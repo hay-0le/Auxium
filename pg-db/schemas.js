@@ -8,7 +8,11 @@ const pool = new Pool({
 })
 
 pool.on('connect', () => {
+console.log("CONNECTED")
 
+})
+
+let createTables = () => {
   const createTablesQuery = `
     CREATE SCHEMA IF NOT EXISTS auxium AUTHORIZATION postgres;
 
@@ -22,7 +26,7 @@ pool.on('connect', () => {
 
     CREATE TABLE IF NOT EXISTS auxium.playlists (
       playlistid integer NOT NULL,
-      playlistname character varying(25)
+      playlistname character varying(25),
       songs integer [],
       CONSTRAINT playlist_pk PRIMARY KEY (playlistid)
     );
@@ -39,9 +43,9 @@ pool.on('connect', () => {
       year integer,
       duration integer,
       CONSTRAINT song_pk PRIMARY KEY (songid)
-    )
+    );
 
-    ALTER TABLE auxium.song OWNER TO postgres;
+    ALTER TABLE auxium.songs OWNER TO postgres;
 
   `;
 
@@ -54,4 +58,11 @@ pool.on('connect', () => {
       console.log("ERROR creating tables: ", err);
       pool.end();
     })
+
+}
+createTables();
+
+
+pool.on("error", () => {
+  console.log("ERROR connecting to database: ", err)
 })
