@@ -17,10 +17,11 @@ Once the project moves into development, the press release can be used as a touc
  -->
 
 ## Summary ##
-  > Auxium is an application where the user can build and share playlists with songs that come from either Spotify or YouTube.
+  > Auxium is an application where users can build and share playlists with songs that come from either Spotify or YouTube.
 
 ## Problem ##
-  > My friends and I share a lot of music amongst outselves, often coming from different music sharing platforms. While doing this, I discovered there were times where one song could be found on one platform, but not on the one I used. This turned into me having 4 separate accounts to find music. So the objective of this application was to allow the user to gather their favorite songs in one place, no matter its source. 
+  > My friends and I share a lot of music amongst outselves, often coming from different music sharing platforms. While doing this, I discovered there were times where one song could be found on one platform, but not another. This turned into me having 4 separate accounts to find and share music. 
+So the objective of this application was to allow the user to gather their favorite songs in one place, no matter its source. 
 
 ## Customer Quote ##
   > "This application saved my life!" -Future customer, probably
