@@ -1,6 +1,4 @@
-# MPV
-
-# Project Name #
+# Auxium #
 
 <!-- 
 > This material was originally posted [here](http://www.quora.com/What-is-Amazons-approach-to-product-development-and-product-management). It is reproduced here for posterities sake.
@@ -17,30 +15,54 @@ Oh, and I also like to write press-releases in what I call "Oprah-speak" for mai
 
 Once the project moves into development, the press release can be used as a touchstone; a guiding light. The product team can ask themselves, "Are we building what is in the press release?" If they find they're spending time building things that aren't in the press release (overbuilding), they need to ask themselves why. This keeps product development focused on achieving the customer benefits and not building extraneous stuff that takes longer to build, takes resources to maintain, and doesn't provide real customer benefit (at least not enough to warrant inclusion in the press release).
  -->
- 
-## Heading ##
-  > Name the product in a way the reader (i.e. your target customers) will understand.
-
-## Sub-Heading ##
-  > Describe who the market for the product is and what benefit they get. One sentence only underneath the title.
 
 ## Summary ##
-  > Give a summary of the product and the benefit. Assume the reader will not read anything else so make this paragraph good.
+  > Auxium is an application where the user can build and share playlists with songs that come from either Spotify or YouTube.
 
 ## Problem ##
-  > Describe the problem your product solves.
-
-## Solution ##
-  > Describe how your product elegantly solves the problem.
-
-## Quote from You ##
-  > A quote from a spokesperson in your company.
-
-## How to Get Started ##
-  > Describe how easy it is to get started.
+  > My friends and I share a lot of music amongst outselves, often coming from different music sharing platforms. While doing this, I discovered there were times where one song could be found on one platform, but not on the one I used. This turned into me having 4 separate accounts to find music. So the objective of this application was to allow the user to gather their favorite songs in one place, no matter its source. 
 
 ## Customer Quote ##
-  > Provide a quote from a hypothetical customer that describes how they experienced the benefit.
+  > "This application saved my life!" -Future customer, probably
 
-## Closing and Call to Action ##
-  > Wrap it up and give pointers where the reader should go next.
+## Usage (API routes)
+To render different items in the browser: http:localhost:{ port }/?{ id# 1 - 10M }
+
+|CRUD API ENDPOINTS                          | DESCRIPTION                                                          |
+|--------------------------------------------|-----------------------------------------------------------------------
+|GET      /api/description/:productId        | Retrieves product description at productId                           |
+|~~GET      /api/description~~               | ~~Retrieves all product descriptions from the database~~             |
+|~~POST     /api/description~~               | ~~Adds new product description into the database~~                   |
+|~~PUT      /api/description/:productId~~    | ~~Updates existing product description in the database at productId~~|
+|~~DELETE   /api/description/:productId~~    | ~~Deletes product description in the database at productId~~         |
+
+## Requirements
+
+- pgAdmin or psql shell, to create the postgreSQL database that will be populated
+
+### Installing Dependencies
+From within the root directory:
+
+```sh
+npm install -g webpack
+npm install
+```
+
+## Creating Database
+1. Within pgAdmin or psql (shell) create a database with the name "auxium"
+2. Build the schema, and tables with:
+
+```sh
+npm run build-db
+```
+
+## Development
+1. Start server
+2. Bundle application with webpack
+```sh
+npm start
+npm run build
+```
+3. Run in browser at: 
+```http://localhost:3001/```
+
