@@ -25,16 +25,17 @@ Once the project moves into development, the press release can be used as a touc
 ## Customer Quote ##
   > "This application saved my life!" -Future customer, probably
 
-## Usage (API routes)
+## API routes
 To render different items in the browser: http:localhost:{ port }/?{ id# 1 - 10M }
 
-|CRUD API ENDPOINTS                          | DESCRIPTION                                                          |
-|--------------------------------------------|-----------------------------------------------------------------------
-|GET      /api/description/:productId        | Retrieves product description at productId                           |
-|~~GET      /api/description~~               | ~~Retrieves all product descriptions from the database~~             |
-|~~POST     /api/description~~               | ~~Adds new product description into the database~~                   |
-|~~PUT      /api/description/:productId~~    | ~~Updates existing product description in the database at productId~~|
-|~~DELETE   /api/description/:productId~~    | ~~Deletes product description in the database at productId~~         |
+|CRUD API ENDPOINTS           | DESCRIPTION                                                                          |
+|-----------------------------|--------------------------------------------------------------------------------------|
+|GET      /login              | Begins O-Auth process:equesting authorization to access data with user account login |
+|GET      /callback           | Requests access and refresh tokens to be used for requests to Spotify API            |
+|GET      /refresh_token      | Sends refresh_token requesting new access_token (expires after 1 hour)               |
+|POST     /db/update_playlist | Adds song to playlist in database                                                    |
+|DELETE   /db/delete_song     | Deletes song in database                                                             |
+|GET      /db/get_playlist    | Retrieves playlist from the database                                                 |
 
 ## Requirements
 
