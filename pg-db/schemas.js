@@ -17,36 +17,60 @@ let createTables = () => {
     CREATE SCHEMA IF NOT EXISTS auxium AUTHORIZATION postgres;
 
     DROP TABLE IF EXISTS auxium.users;
-    DROP TABLE IF EXISTS auxium.songs;
+    DROP TABLE IF EXISTS auxium.user_playlist;
     DROP TABLE IF EXISTS auxium.playlists;
+    DROP TABLE IF EXISTS auxium.playlist_song;
+    DROP TABLE IF EXISTS auxium.songs;
 
     CREATE TABLE IF NOT EXISTS auxium.users (
-      userid SERIAL PRIMARY KEY,
-      playlists integer []
+      userid TEXT NOT NULL,
+      userName TEXT NOT NULL,
+        CONSTRAINT u_id_pk PRIMARY KEY (userid)
     );
 
-    ALTER TABLE auxium.users OWNER TO postgres;
 
     CREATE TABLE IF NOT EXISTS auxium.playlists (
-      playlistid SERIAL PRIMARY KEY,
-      playlistname character varying(25) NOT NULL,
-      songs integer []
-    );
+      playlistid SERIAL NOT NULL,
+      playlistname TEXT NOT NULL,
+      CONSTRAINT p_id_pk PRIMARY KEY (playlistid)
 
-    ALTER TABLE auxium.playlists OWNER TO postgres;
+    );
 
     CREATE TABLE IF NOT EXISTS auxium.songs (
-      songid SERIAL PRIMARY KEY,
-      url character varying(200),
-      href character varying(200),
-      title character varying(50),
-      artists character varying(50),
-      album character varying(50),
+      songid SERIAL NOT NULL,
+      url TEXT,
+      href TEXT,
+      title TEXT,
+      artists TEXT,
+      album TEXT,
       year integer,
       duration integer,
-      playlist character varying(50)
+      playlist integer,
+        CONSTRAINT s_pk PRIMARY KEY (songid)
     );
 
+    CREATE TABLE IF NOT EXISTS auxium.user_playlist (
+      userid TEXT,
+      playlistid INTEGER,
+        CONSTRAINT u_up_fk FOREIGN KEY (userid) REFERENCES auxium.users(userid),
+        CONSTRAINT p_up_fk FOREIGN KEY (playlistid) REFERENCES auxium.playlists(playlistid)
+    );
+
+    CREATE TABLE IF NOT EXISTS auxium.playlist_song (
+      playlistid INTEGER,
+      songid INTEGER,
+      songOrder INT,
+        CONSTRAINT p_ps_fk FOREIGN KEY (playlistid) REFERENCES auxium.playlists(playlistid),
+        CONSTRAINT s_ps_fk FOREIGN KEY (songid) REFERENCES auxium.songs(songid)
+    );
+
+
+
+
+    ALTER TABLE auxium.users OWNER TO postgres;
+    ALTER TABLE auxium.user_playlist OWNER TO postgres;
+    ALTER TABLE auxium.playlists OWNER TO postgres;
+    ALTER TABLE auxium.playlist_song OWNER TO postgres;
     ALTER TABLE auxium.songs OWNER TO postgres;
 
   `;
@@ -54,13 +78,12 @@ let createTables = () => {
   pool.query(createTablesQuery)
     .then((res) => {
       console.log("Success creating tables: ", res);
-      pool.end();
     })
     .catch((err) => {
       console.log("ERROR creating tables: ", err);
-      pool.end();
     })
 
+    return;
 }
 createTables();
 
