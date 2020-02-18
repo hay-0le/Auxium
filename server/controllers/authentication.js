@@ -63,36 +63,37 @@ let getAccessToken = (req, res) => {
       json: true
     }
 
-    request.post(authOptions, (err, response, body) => {
-      if (response.statusCode !== 200 || err) {
-        console.log('error: ', err);
-        res.redirect('/#' +
-        querystring.stringify({
-            error: 'invalid_token'
+    request.post(authOptions, (error, response, body) => {
+       if (!error && response.statusCode === 200) {
+          let access_token = body.access_token;
+          let refresh_token = body.refresh_token;
+
+          let options = {
+            url: 'https://api/spotify.com/v1/me',
+            headers: { 'Authorization': 'Bearer' + access_token },
+            json: true
+          };
+
+          //use access token to access the Spotify APi
+          request.get(options, (error, response, body) => {
+
           })
+
+          res.redirect('/#' +
+              querystring.stringify({
+                access_token: access_token,
+                refresh_token: refresh_token
+              })
+            );
+
+
+        } else {
+          console.log('error: ', err);
+          res.redirect('/#' +
+            querystring.stringify({
+              error: 'invalid_token'
+            })
           );
-
-      } else {
-        let access_token = body.access_token;
-        let refresh_token = body.refresh_token;
-
-        let options = {
-          url: 'https://api/spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer' + access_token },
-          json: true
-        }
-
-        //use access token to access the Spotify APi
-        request.get(options, (err, response, body) => {
-          console.log("body", body);
-          console.log("response", response)
-        })
-
-        res.redirect('http://localhost:3001/#' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
         }
     })
   }
