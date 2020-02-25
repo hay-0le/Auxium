@@ -39,22 +39,23 @@ class App extends React.Component {
     this.getAllPlaylists = this.getAllPlaylists.bind(this);
     this.changePlaylist = this.changePlaylist.bind(this);
     this.getUserData = this.getUserData.bind(this);
+    this.getSpotifyUser = this.getSpotifyUser.bind(this);
   }
 
 
 
   login(e) {
     e.preventDefault();
-
     console.log("clicked")
-    // axios.get('http:/login')
-    //   .then(response => {
-    //     console.log("Response", response)
+
+    // axios.get('http://localhost:3001/login')
+    //   .then(() => {
+    //     console.log("Success logging in");
     //   })
     //   .catch(err => {
-    //     console.log("Error:", err)
+    //     console.log("Error logging in", err)
     //   })
-    window.location = 'http://localhost:3001/login'
+    window.location = '/login';
   }
 
 
@@ -161,23 +162,6 @@ class App extends React.Component {
   }
 
 
-  getAllPlaylists (userid) {
-    //TODO: create new userid in db if newUser = true
-    //TODO: change to async
-    console.log("Getting all playlists at id", userid)
-    axios.post('/db/get_all_playlists', {
-      userid
-    })
-      .then(data => {
-        //extra only the playlist names from the returned object
-        data = data.data.rows.map(playlist => playlist.playlistname);
-
-        return data;
-      })
-      .catch(err => {
-        console.log("ERROR retreiving playlists:", err)
-      })
-  }
 
 
 
@@ -225,14 +209,6 @@ class App extends React.Component {
 
   }
 
-
-
-
-
-
-
-
-
   getUserData() {
     return new Promise((resolve, reject) => {
       spotifyAPI.getMe()
@@ -250,15 +226,6 @@ class App extends React.Component {
     })
 
   }
-
-
-
-
-
-
-
-
-
 
   getPlaylist (playlist) {
     axios.post(`http://localhost:3001/db/get_playlist`, {
@@ -280,7 +247,33 @@ class App extends React.Component {
     .catch(err => {
       console.log("ERROR getting playlist: ", err);
     })
+  }
 
+
+  getAllPlaylists (userid, username) {
+    axios.post('/db/get_all_playlists', {
+      userid, username
+    })
+    .then(data => {
+      console.log("DATA in app.jsx: ", data)
+      data = data.data.map(playlist => playlist.playlistname);
+      return data;
+    })
+    .catch(err => {
+      console.log("ERROR retreiving playlists:", err)
+    })
+  }
+// <3
+  //then is undefined
+  getSpotifyUser(){
+    console.log("Getting user data...");
+    return this.getUserData().then((data) => {
+      console.log("Get user data", data)
+      return data;
+    })
+    .catch(err => {
+      console.log("Error retreiving user, and playlists", err)
+    })
   }
 
 
@@ -291,27 +284,25 @@ class App extends React.Component {
 
     spotifyAPI.setAccessToken(access_token);
 
-
     if (this.state.loggedIn === false && access_token) {
-      let user;
+      // console.log(this)
+      // console.log(this.getSpotifyUser())
 
-      this.getUserData().then((data) => {
-        // console.log("DATA", data)
-        user = data;
-        return data.userid;
-      })
-      .then(id => {
-        let playlists = this.getAllPlaylists(id);
-        // console.log("Playlists", id)
+      this.getSpotifyUser()
+      .then((data)=>{
+        console.log('data',data)
+        this.getAllPlaylists(data.userid, data.user)
       })
       .catch(err => {
-        console.log("error retreiving user, and playlists", err)
+        console.log("error in componentDidMount:", err)
       })
 
-        // let playlists = await this.getAllPlaylists(userid);
+    }
 
-        // //get songs for first playlist
-        // let songs = await this.getPlaylist(playlists[0]);
+    // this.getSpotifyUser().then((user) => {
+    //     this.getAllPlaylists(user.userid, user.user)
+    // })
+
 
         // this.setState({
         //   loggedIn: true,
@@ -321,7 +312,6 @@ class App extends React.Component {
         //   playlists: playlists
         // })
 
-    };
   }
 
   render() {
