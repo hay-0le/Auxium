@@ -16,15 +16,15 @@ let createTables = () => {
   const createTablesQuery = `
     CREATE SCHEMA IF NOT EXISTS auxium AUTHORIZATION postgres;
 
-    DROP TABLE IF EXISTS auxium.users;
-    DROP TABLE IF EXISTS auxium.user_playlist;
-    DROP TABLE IF EXISTS auxium.playlists;
-    DROP TABLE IF EXISTS auxium.playlist_song;
-    DROP TABLE IF EXISTS auxium.songs;
+    DROP TABLE IF EXISTS auxium.users CASCADE;
+    DROP TABLE IF EXISTS auxium.user_playlist CASCADE;
+    DROP TABLE IF EXISTS auxium.playlists CASCADE;
+    DROP TABLE IF EXISTS auxium.playlist_song CASCADE;
+    DROP TABLE IF EXISTS auxium.songs CASCADE;
 
     CREATE TABLE IF NOT EXISTS auxium.users (
       userid TEXT NOT NULL,
-      userName TEXT NOT NULL,
+      username TEXT NOT NULL,
         CONSTRAINT u_id_pk PRIMARY KEY (userid)
     );
 
@@ -45,7 +45,6 @@ let createTables = () => {
       album TEXT,
       year integer,
       duration integer,
-      playlist integer,
         CONSTRAINT s_pk PRIMARY KEY (songid)
     );
 
@@ -59,7 +58,7 @@ let createTables = () => {
     CREATE TABLE IF NOT EXISTS auxium.playlist_song (
       playlistid INTEGER,
       songid INTEGER,
-      songOrder INT,
+      songOrder INTEGER,
         CONSTRAINT p_ps_fk FOREIGN KEY (playlistid) REFERENCES auxium.playlists(playlistid),
         CONSTRAINT s_ps_fk FOREIGN KEY (songid) REFERENCES auxium.songs(songid)
     );
