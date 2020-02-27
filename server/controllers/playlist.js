@@ -80,62 +80,74 @@ const deleteSong = (req, res) => {
 
 //Return requested playlist
 const getPlaylist = (req, res) => {
-  console.log('playlist:', playlist)
-  let playlist = req.body.nextPlaylist;
-  //SELECT s.songid, s.title, s.url, ps.songOrder
-// FROM auxium.playlist_song ps
-// JOIN auxium.songs s
-// ON ps.songid = s.songid
-// JOIN auxium.playlists p
-// ON ps.playlistid = p.playlistid
-// ORDER BY ps.songOrder;
+  let playlistid = req.body.nextPlaylistId;
+console.log("...", playlistid)
+  let songsQueryString = `SELECT s.songid, s.title, s.url, ps.songOrder
+    FROM auxium.playlist_song ps
+    JOIN auxium.songs s
+    ON ps.songid = s.songid
+    JOIN auxium.playlists p
+    ON ps.playlistid = p.playlistid
+    WHERE p.playlistid = $1
+    ORDER BY ps.songOrder;`
 
-
-
-  pool.connect()
-    .then(() => {
-      let queryString = `SELECT * FROM auxium.songs WHERE playlist = '${playlist}'`;
-
-      pool.query(queryString)
-      .then(data => {
-        console.log(`Successfully retreived playlist: ${playlist}`);
-        res.send(data);
+    db.manyOrNone(songsQueryString, [playlistid])
+      .then(songs => {
+        console.log("songs", songs)
       })
       .catch(err => {
-        console.log(`ERROR retreiving playlist ${playlist}: `, err)
+        console.log("ERROR retrieving playlist's songs: ", err)
       })
 
-    })
-    .catch(err => {
-      console.log("ERROR connecting to database while getting playlist:", err);
 
-    })
+  // pool.connect()
+  //   .then(() => {
+  //     let queryString = `SELECT * FROM auxium.songs WHERE playlist = '${playlist}'`;
+
+  //     pool.query(queryString)
+  //     .then(data => {
+  //       console.log(`Successfully retreived playlist: ${playlist}`);
+  //       res.send(data);
+  //     })
+  //     .catch(err => {
+  //       console.log(`ERROR retreiving playlist ${playlist}: `, err)
+  //     })
+
+  //   })
+  //   .catch(err => {
+  //     console.log("ERROR connecting to database while getting playlist:", err);
+
+  //   })
 
 }
 
 //create new (empty) playlist
 const addPlaylist = (req, res) => {
   let newPlaylist = req.body.params.newPlaylist;
-  console.log('NEW playlist:', newPlaylist)
+  let userid = req.body.params.userid;
 
-  pool.connect()
-    .then(() => {
-      let queryString = `INSERT INTO auxium.playlists (playlistname) VALUES ($1)`;
+  let addPlaylistQueryString = `
+    INSERT INTO auxium.playlists (playlistname) VALUES ($1) RETURNING playlistid`;
 
-      pool.query(queryString, [newPlaylist])
-      .then(data => {
-        console.log(`Successfully created playlist: ${newPlaylist}`);
-        res.send(data);
-      })
-      .catch(err => {
-        console.log(`ERROR creating playlist ${newPlaylist}: `, err)
-      })
+  let connectPlaylistToUserQueryString = `
+    INSERT INTO auxium.user_playlist (userid, playlistid) VALUES ($1, $2) RETURNING playlistid`;
 
-    })
-    .catch(err => {
-      console.log("ERROR connecting to database while creating playlist:", err);
-
-    })
+  db.task(t => {
+    return t.one(addPlaylistQueryString, [newPlaylist])
+              .then((playlistid) => {
+                console.log(playlistid);
+                return t.one(connectPlaylistToUserQueryString, [userid, playlistid.playlistid])
+              }
+              )
+              .catch(err => {
+                console.log("ERROR adding playlist: ", err);
+                res.end();
+              })
+  })
+  .catch(err => {
+    console.log("ERROR with task - Adding Playlist: ", err);
+    res.end();
+  })
 
 }
 
@@ -198,15 +210,12 @@ const getAllPlaylists = (req, res) => {
     ORDER BY ps.songOrder;`;
 
     db.task(t => {
-      console.log("In task...")
-      let playlist;
 
       return t.one(createUserQueryString, [userid, username])
                 .then(async (data) => {
-                  // console.log("Keep going:", data);
-
                   const playlists = await t.any(playlistQueryString, data.userid);
-                  const songs = await t.any(songQueryString, userid);
+                  const songs = await t.any(songQueryString, data.userid);
+
                   res.send({ playlists, songs })
                 })
                 .catch(err => {
@@ -215,7 +224,7 @@ const getAllPlaylists = (req, res) => {
                 })
     })
     .catch(err => {
-      console.log("Error with task: ", err);
+      console.log("ERROR with task: ", err);
       res.end();
     })
 
