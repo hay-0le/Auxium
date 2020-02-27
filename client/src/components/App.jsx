@@ -7,6 +7,7 @@ import Player from './Player.jsx';
 import PlaylistContainer from './PlaylistContainer.jsx';
 import SearchResults from './SearchResults.jsx';
 
+
 // require('dotenv').config();
 var Spotify = require('spotify-web-api-js');
 var Q = require('q')
@@ -20,6 +21,7 @@ class App extends React.Component {
     this.state = {
       loggedIn: false,
       user: null,
+      userid: null,
       refresh_token: null,
       currentSong: null,
       currentPlaylist: [],
@@ -29,7 +31,6 @@ class App extends React.Component {
     }
 
     this.getPlaylist = this.getPlaylist.bind(this);
-    // this.playSong = this.playSong.bind(this);
     this.login = this.login.bind(this);
     this.searchHandler = this.searchHandler.bind(this);
     this.refreshAccess = this.refreshAccess.bind(this);
@@ -41,7 +42,6 @@ class App extends React.Component {
     this.getUserData = this.getUserData.bind(this);
     this.getSpotifyUser = this.getSpotifyUser.bind(this);
   }
-
 
 
   login(e) {
@@ -75,9 +75,7 @@ class App extends React.Component {
     .catch((error) => {
       console.log(error);
     })
-
   }
-
 
 
   //pulls access and refresh tokens from url
@@ -90,7 +88,6 @@ class App extends React.Component {
     }
     return hashParams;
   }
-
 
 
   //searhes spotify (will eventually be able to chose to search songs, artists, or albums specifically)
@@ -119,7 +116,6 @@ class App extends React.Component {
   }
 
 
-
   resultsHandler (e) {
     e.preventDefault();
 
@@ -137,8 +133,6 @@ class App extends React.Component {
     // this.setState({
     //   currentPlaylist: updatedPlaylist
     // })
-
-
 
   }
 
@@ -162,17 +156,16 @@ class App extends React.Component {
   }
 
 
-
-
-
   createPlaylist() {
     let newPlaylist = document.getElementById('add-playlist').value;
 
     axios.post(`http://localhost:3001/db/create_playlist`, {
       params: {
-        newPlaylist: newPlaylist
+        newPlaylist: newPlaylist,
+        userid: this.state.userid
       }
     }).then(data => {
+      console.log("Data I want", data)
       let updatedPlaylists = this.state.playlists;
       updatedPlaylists.push(newPlaylist);
 
@@ -193,14 +186,13 @@ class App extends React.Component {
   }
 
 
-
-
   changePlaylist (e) {
     //TODO : grab playlist by id instead of name
     e.preventDefault();
 
     let nextPlaylist = e.target.innerHTML;
-    let songs = this.getGetPlaylist(nextPlaylist);
+    let nextPlaylistId = e.target.id;
+    let songs = this.getPlaylist(nextPlaylistId);
 
     this.setState({
       currentPlaylistName: nextPlaylist,
@@ -208,6 +200,7 @@ class App extends React.Component {
     })
 
   }
+
 
   getUserData() {
     return new Promise((resolve, reject) => {
@@ -224,12 +217,12 @@ class App extends React.Component {
         }
       })
     })
-
   }
 
-  getPlaylist (playlist) {
+
+  getPlaylist (playlistid) {
     axios.post(`http://localhost:3001/db/get_playlist`, {
-      nextPlaylist: playlist
+      nextPlaylistId: playlistid
     })
     .then(data => {
       songs = data.data.rows;
@@ -251,24 +244,20 @@ class App extends React.Component {
 
 
   getAllPlaylists (userid, username) {
-    axios.post('/db/get_all_playlists', {
-      userid, username
-    })
-    .then(data => {
-      console.log("DATA in app.jsx: ", data)
-      data = data.data.map(playlist => playlist.playlistname);
-      return data;
-    })
-    .catch(err => {
-      console.log("ERROR retreiving playlists:", err)
-    })
+    return axios.post('/db/get_all_playlists', {
+        userid, username
+      })
+      .then(data => {
+        return data.data;
+      })
+      .catch(err => {
+        console.log("ERROR retreiving playlists:", err)
+      })
   }
 // <3
-  //then is undefined
+
   getSpotifyUser(){
-    console.log("Getting user data...");
     return this.getUserData().then((data) => {
-      console.log("Get user data", data)
       return data;
     })
     .catch(err => {
@@ -285,38 +274,39 @@ class App extends React.Component {
     spotifyAPI.setAccessToken(access_token);
 
     if (this.state.loggedIn === false && access_token) {
-      // console.log(this)
-      // console.log(this.getSpotifyUser())
 
       this.getSpotifyUser()
-      .then((data)=>{
-        console.log('data',data)
-        this.getAllPlaylists(data.userid, data.user)
-      })
-      .catch(err => {
-        console.log("error in componentDidMount:", err)
-      })
+        .then(async (userData)=>{
+          const musicData = await this.getAllPlaylists(userData.userid, userData.user);
+          return { musicData, userData };
+        })
+        .then((data) => {
 
+          const { playlists, songs } = data.musicData;
+          const { user, userid } = data.userData;
+          console.log("STYFF", songs)
+          this.setState({
+            loggedIn: true,
+            user: user,
+            userid: userid,
+            refresh_token: refresh_token,
+            currentPlaylist: songs,
+            playlists: playlists
+          })
+
+        })
+        .catch(err => {
+          console.log("ERROR in componentDidMount:", err)
+        })
+console.log("OVER HERE", this.state.currentPlaylist)
     }
-
-    // this.getSpotifyUser().then((user) => {
-    //     this.getAllPlaylists(user.userid, user.user)
-    // })
-
-
-        // this.setState({
-        //   loggedIn: true,
-        //   user: user,
-        //   refresh_token: refresh_token,
-        //   currentPlaylist: songs,
-        //   playlists: playlists
-        // })
 
   }
 
   render() {
     return (
       <div id='mainpage'>
+
         {this.state.loggedIn ?
             <div>
             <Player currentSong={this.state.currentSong}/>
@@ -344,10 +334,8 @@ class App extends React.Component {
             </div>
           </div>
 
-
-
-
           :
+
           <div id="spotifyLogin">
             <h2>Log In to Your Spotify</h2>
             <button id='login' onClick={this.login}>Click Here to Login</button>
