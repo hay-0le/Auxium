@@ -24,8 +24,9 @@ class App extends React.Component {
       userid: null,
       refresh_token: null,
       currentSong: null,
-      currentPlaylist: [],
-      currentPlaylistName: null,
+      currentPlaylistSongs: [],
+      currentPlaylist: null,
+      currentPlaylistId: null,
       playlists: null,
       currentSearchResults: []
     }
@@ -36,7 +37,7 @@ class App extends React.Component {
     this.refreshAccess = this.refreshAccess.bind(this);
     this.resultsHandler = this.resultsHandler.bind(this);
     this.createPlaylist = this.createPlaylist.bind(this);
-    this.savePlaylist = this.savePlaylist.bind(this);
+    this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
     this.getAllPlaylists = this.getAllPlaylists.bind(this);
     this.changePlaylist = this.changePlaylist.bind(this);
     this.getUserData = this.getUserData.bind(this);
@@ -61,7 +62,7 @@ class App extends React.Component {
 
   refreshAccess() {
     let refresh_token = this.state.refresh_token;
-
+    console.log("refreh", refresh_token)
     axios.get(`http://localhost:3001/refresh_token`, {
       params: {
         refresh_token: refresh_token
@@ -97,7 +98,7 @@ class App extends React.Component {
     spotifyAPI.searchTracks(newSong)
       .then((data) => {
         let searchResults = data.tracks.items;
-
+//TODO: get search results out of state
         this.setState({
           currentSearchResults: searchResults
         })
@@ -124,30 +125,36 @@ class App extends React.Component {
 
     //TODO turn into async/await so song isn't added to state until its added to db
     //update playlist by adding song to db
-    this.savePlaylist(newSong)
+    this.addSongToPlaylist(newSong)
 
-    let updatedPlaylist = this.state.currentPlaylist
-    updatedPlaylist.push(newSong);
+    // let updatedPlaylist = this.state.currentPlaylistSongs
+    // updatedPlaylist.push(newSong);
 
-    // console.log(this.state.currentPlaylist)
+    // console.log(this.state.currentPlaylistSongs)
     // this.setState({
-    //   currentPlaylist: updatedPlaylist
+    //   currentPlaylistSongs: updatedPlaylist
     // })
 
   }
 
 
-  savePlaylist (newSong) {
-    console.log("Add song to playlist:", this.state.currentPlaylist)
+  addSongToPlaylist (newSong) {
+
     axios.post(`http://localhost:3001/db/update_playlist`, {
       params: {
-        playlist: this.state.currentPlaylistName,
+        playlist: this.state.currentPlaylist,
+        playlistid: this.state.currentPlaylistId,
         song: newSong
       }
     })
-    .then((response) => {
-      console.log("Success saving playlist to database: ", response)
-      //refresh page?
+    .then((song) => {
+      console.log("Success saving playlist to database: ", song)
+      let updatedPlaylist = this.state.currentPlaylistSongs;
+
+      updatedPlaylist.push(newSong);
+      this.setState({
+      currentPlaylistSongs: updatedPlaylist
+    })
 
     })
     .catch((error) => {
@@ -165,16 +172,15 @@ class App extends React.Component {
         userid: this.state.userid
       }
     }).then(data => {
-      console.log("Data I want", data)
       let updatedPlaylists = this.state.playlists;
       updatedPlaylists.push(newPlaylist);
 
       //if no current playlist, set it to newPlaylist, else keep it the same
-      let currentPlaylist = this.state.currentPlaylistName || newPlaylist;
+      let currentPlaylistS = this.state.currentPlaylist || newPlaylist;
 
       this.setState({
         playlists: updatedPlaylists,
-        currentPlaylistName: currentPlaylist
+        currentPlaylist: currentPlaylist
 
       })
       //add new playlist to playlists in state
@@ -186,18 +192,21 @@ class App extends React.Component {
   }
 
 
-  changePlaylist (e) {
-    //TODO : grab playlist by id instead of name
+  async changePlaylist (e) {
     e.preventDefault();
 
     let nextPlaylist = e.target.innerHTML;
     let nextPlaylistId = e.target.id;
-    let songs = this.getPlaylist(nextPlaylistId);
 
-    this.setState({
-      currentPlaylistName: nextPlaylist,
-      currentPlaylist: songs
-    })
+    this.getPlaylist(nextPlaylistId)
+      .then(songs => {
+        console.log("Songs", songs)
+
+        this.setState({
+          currentPlaylist: nextPlaylist,
+          currentPlaylistSongs: songs
+        })
+      })
 
   }
 
@@ -206,12 +215,14 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       spotifyAPI.getMe()
       .then(userData => {
+
         if (userData) {
           let userAndID = {
             user: userData.display_name,
             userid: userData.id
           }
           resolve(userAndID)
+
         } else {
           console.log("Error getting user data from spotify")
         }
@@ -221,25 +232,23 @@ class App extends React.Component {
 
 
   getPlaylist (playlistid) {
-    axios.post(`http://localhost:3001/db/get_playlist`, {
-      nextPlaylistId: playlistid
-    })
-    .then(data => {
-      songs = data.data.rows;
-      if (songs.length === 0) {
-        console.log("There are no songs in this playlist")
-        this.setState({
-          currentPlaylist: []
-        });
-        return;
+    return axios.post(`http://localhost:3001/db/get_playlist`, {
+        nextPlaylistId: playlistid
+      })
+      .then(songs => {
+        songs = songs.data;
 
-      } else {
-        return songs;
-      }
-    })
-    .catch(err => {
-      console.log("ERROR getting playlist: ", err);
-    })
+        if (songs.length === 0) {
+          console.log("There are no songs in this playlist")
+          return [];
+
+        } else {
+          return songs;
+        }
+      })
+      .catch(err => {
+        console.log("ERROR getting playlist: ", err);
+      })
   }
 
 
@@ -278,19 +287,23 @@ class App extends React.Component {
       this.getSpotifyUser()
         .then(async (userData)=>{
           const musicData = await this.getAllPlaylists(userData.userid, userData.user);
+
           return { musicData, userData };
         })
         .then((data) => {
-
           const { playlists, songs } = data.musicData;
           const { user, userid } = data.userData;
-          console.log("STYFF", songs)
+console.log("SONGS", songs)
+console.log("Playlists:", playlists)
+
           this.setState({
             loggedIn: true,
             user: user,
             userid: userid,
             refresh_token: refresh_token,
-            currentPlaylist: songs,
+            currentPlaylistSongs: songs,
+            currentPlaylist: songs[0].playlistname,
+            currentPlaylistId: songs[0].playlistid,
             playlists: playlists
           })
 
@@ -298,9 +311,7 @@ class App extends React.Component {
         .catch(err => {
           console.log("ERROR in componentDidMount:", err)
         })
-console.log("OVER HERE", this.state.currentPlaylist)
     }
-
   }
 
   render() {
@@ -310,7 +321,7 @@ console.log("OVER HERE", this.state.currentPlaylist)
         {this.state.loggedIn ?
             <div>
             <Player currentSong={this.state.currentSong}/>
-            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylistName} songs={this.state.currentPlaylist} addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylistName} changePlaylist={this.changePlaylist} />
+            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} songs={this.state.currentPlaylistSongs} addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} />
             <div></div>
             <div id="search">
               <div id="search-bar">
@@ -329,7 +340,7 @@ console.log("OVER HERE", this.state.currentPlaylist)
                   </form>
                 </div>
               </div>
-              <SearchResults playlist={this.state.currentPlaylist} addSong={this.resultsHandler} results={this.state.currentSearchResults} />
+              <SearchResults playlist={this.state.currentPlaylistSongs} addSong={this.resultsHandler} results={this.state.currentSearchResults} />
 
             </div>
           </div>
