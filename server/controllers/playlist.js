@@ -2,8 +2,6 @@ const { Pool } = require('pg');
 require('dotenv').config();
 const db = require('../../pg-db/pg-index.js');
 
-//TODO: switch to using pg-promise
-//TODO one pool connect
 
 const connectionString = `postgres://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`
 
@@ -13,9 +11,10 @@ const pool = new Pool({
 
 //update playlist by adding new song
 const addSong = (req, res) => {
-  let playlist = req.body.params.playlist;
+  console.log("Params: ", req.body.params)
+  let { playlist, playlistid } = req.body.params.playlist;
   let newSong = req.body.params.song;
-console.log("Add song")
+
   let url = newSong.external_urls.spotify;
   let href = newSong.href;
   let title = newSong.name;
@@ -25,25 +24,29 @@ console.log("Add song")
   let album = newSong.album.name;
   let duration = newSong.duration_ms;
 
-  pool.connect()
-    .then(() => {
 
-    let queryString = `INSERT INTO auxium.songs (url, href, title, artists, album, year, duration, playlist) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+    let addSongQueryString = `INSERT INTO auxium.songs (url, href, title, artists, album, year, duration) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`
 
-    pool.query(queryString, [url, href, title, artists, album, year, duration, playlist])
-      .then(response => {
-        console.log(`Success adding ${title} to playlist`);
-      })
-      .catch(err => {
-        console.log(`ERROR adding ${title} to playlist: `, err);
-      })
+    let connectSongToPlaylistQueryString = `
+    INSERT INTO auxium.playlist_song (playlistid, songid) VALUES ($1, $2)`;
 
-  })
 
-  .catch(err => {
-    console.log("ERROR connecting to pool to add song: ", err);
+    db.task(t => {
+      return t.one(addSongQueryString, [url, href, title, artists, album, year, duration])
+                .then(async(song) => {
+                  await t.none(connectSongToPlaylistQueryString, [playlistid, song.songid]);
 
-  })
+                  res.send(song);
+                })
+                .catch(err => {
+                  console.log(`ERROR adding ${title} to playlist: `, err);
+                  res.end();
+                })
+    })
+    .catch(err => {
+      console.log("ERROR with task - Adding Song: ", err);
+      res.end();
+    })
 
 }
 
@@ -81,8 +84,16 @@ const deleteSong = (req, res) => {
 //Return requested playlist
 const getPlaylist = (req, res) => {
   let playlistid = req.body.nextPlaylistId;
-console.log("...", playlistid)
-  let songsQueryString = `SELECT s.songid, s.title, s.url, ps.songOrder
+
+  let songsQueryString = `
+    SELECT
+      s.title,
+      s.artists,
+      s.album,
+      s.year,
+      s.duration,
+      s.url,
+      ps.songOrder
     FROM auxium.playlist_song ps
     JOIN auxium.songs s
     ON ps.songid = s.songid
@@ -91,33 +102,15 @@ console.log("...", playlistid)
     WHERE p.playlistid = $1
     ORDER BY ps.songOrder;`
 
-    db.manyOrNone(songsQueryString, [playlistid])
+    db.any(songsQueryString, [playlistid])
       .then(songs => {
-        console.log("songs", songs)
+        console.log("SSSsongs", songs);
+        res.send(songs)
       })
       .catch(err => {
         console.log("ERROR retrieving playlist's songs: ", err)
+        res.end();
       })
-
-
-  // pool.connect()
-  //   .then(() => {
-  //     let queryString = `SELECT * FROM auxium.songs WHERE playlist = '${playlist}'`;
-
-  //     pool.query(queryString)
-  //     .then(data => {
-  //       console.log(`Successfully retreived playlist: ${playlist}`);
-  //       res.send(data);
-  //     })
-  //     .catch(err => {
-  //       console.log(`ERROR retreiving playlist ${playlist}: `, err)
-  //     })
-
-  //   })
-  //   .catch(err => {
-  //     console.log("ERROR connecting to database while getting playlist:", err);
-
-  //   })
 
 }
 
@@ -152,8 +145,6 @@ const addPlaylist = (req, res) => {
 }
 
 const getAllPlaylists = (req, res) => {
-  console.log('test')
-  console.log("In getAllPlaylists: ", req.body)
 
   let userid = req.body.userid;
   let username = req.body.username;
@@ -178,7 +169,9 @@ const getAllPlaylists = (req, res) => {
       s.year,
       s.duration,
       s.url,
-      ps.songOrder
+      ps.songOrder,
+      p.playlistname,
+      p.playlistid
     FROM
       auxium.playlist_song ps
     JOIN
@@ -210,12 +203,12 @@ const getAllPlaylists = (req, res) => {
     ORDER BY ps.songOrder;`;
 
     db.task(t => {
-
+//TODO return playlistid and name separate from each song returned
       return t.one(createUserQueryString, [userid, username])
                 .then(async (data) => {
                   const playlists = await t.any(playlistQueryString, data.userid);
                   const songs = await t.any(songQueryString, data.userid);
-
+console.log("These ol songs", songs)
                   res.send({ playlists, songs })
                 })
                 .catch(err => {
