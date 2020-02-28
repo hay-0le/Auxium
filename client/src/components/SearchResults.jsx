@@ -3,7 +3,6 @@ import SearchedResult from './SearchedResult';
 
 
 const SearchResults = ({ playlist, addSong, results }) => {
-console.log("results", results)
 
  return results ?
     (

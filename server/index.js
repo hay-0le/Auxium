@@ -40,6 +40,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/', (req, res) => {
+  res.send();
+})
+
 ///// AUTHENTICATION ROUTES /////
 app.get('/login', authentication.login);
 
@@ -51,6 +55,7 @@ app.get('/callback', authentication.getAccessToken);
 app.get('/refresh_token', authentication.getRefreshToken);
 
 
+
 ///// DATABASE ROUTES /////
 
 app.post('/db/update_playlist', playlist.addSong);
@@ -59,7 +64,10 @@ app.post('/db/create_playlist', playlist.addPlaylist);
 
 app.delete('/db/delete_song', playlist.deleteSong);
 
-app.get('/db/get_playlist', playlist.getPlaylist);
+app.post('/db/get_playlist', playlist.getPlaylist);
+
+
+app.post('/db/get_all_playlists', playlist.getAllPlaylists);
 
 
 app.listen(port, () => {
