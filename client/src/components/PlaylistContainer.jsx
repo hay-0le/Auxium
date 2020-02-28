@@ -3,7 +3,7 @@ import SongsList from './SongsList.jsx';
 import Playlists from './Playlists.jsx';
 
 const PlaylistContainer = ({ songs, playlist, playlists, changeSong, addPlaylist, currentPlaylist, changePlaylist}) => {
-
+console.log("Playlist.....", currentPlaylist)
   return (
     <div id="playlistcontainer">
       <div id="create-playlist">
@@ -20,7 +20,7 @@ const PlaylistContainer = ({ songs, playlist, playlists, changeSong, addPlaylist
         </form>
       </div>
     <Playlists playlists={playlists} changePlaylist={changePlaylist} />
-  <h2>Songs from playlist: {playlist}</h2>
+  <h2>Songs from playlist: {currentPlaylist}</h2>
     <SongsList changeSong={changeSong} songs={songs}/>
     </div>
   )
