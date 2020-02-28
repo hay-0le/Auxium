@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Playlists = ({ playlists, changePlaylist }) => {
-  console.log("PPPPP", playlists)
+  // console.log("PPPPP", playlists)
 return playlists ?
   (
     <div>
@@ -10,7 +10,7 @@ return playlists ?
       {playlists.map((pl, i) => {
         const { playlistid, playlistname } = pl;
 
-        return <div className='playlist' id={playlistid} onClick={changePlaylist}>{playlistname}</div>
+        return <div className='playlist' key={i} id={playlistid} onClick={changePlaylist}>{playlistname}</div>
       })}
 
     </div>
