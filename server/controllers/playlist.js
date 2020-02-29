@@ -12,17 +12,16 @@ const pool = new Pool({
 //update playlist by adding new song
 const addSong = (req, res) => {
   console.log("Params: ", req.body.params)
-  let { playlist, playlistid } = req.body.params.playlist;
-  let newSong = req.body.params.song;
-
-  let url = newSong.external_urls.spotify;
-  let href = newSong.href;
-  let title = newSong.name;
+  let { playlist, playlistid, song } = req.body.params;
+// console.log(playlistid, "PlaylistID")
+  let url = song.external_urls.spotify;
+  let href = song.href;
+  let title = song.name;
   //map array of artist objects, to return array of artists names only
-  let artists = newSong.artists.map(artist => artist.name);
-  let year = newSong.album.release_date.slice(0, 4);
-  let album = newSong.album.name;
-  let duration = newSong.duration_ms;
+  let artists = song.artists.map(artist => artist.name);
+  let year = song.album.release_date.slice(0, 4);
+  let album = song.album.name;
+  let duration = song.duration_ms;
 
 
     let addSongQueryString = `INSERT INTO auxium.songs (url, href, title, artists, album, year, duration) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`
@@ -208,7 +207,6 @@ const getAllPlaylists = (req, res) => {
                 .then(async (data) => {
                   const playlists = await t.any(playlistQueryString, data.userid);
                   const songs = await t.any(songQueryString, data.userid);
-console.log("These ol songs", songs)
                   res.send({ playlists, songs })
                 })
                 .catch(err => {
