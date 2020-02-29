@@ -2,13 +2,14 @@ const querystring = require('querystring');
 const request = require('request');
 
 require('dotenv').config();
-
+//TODO switch to spotify-web-api-node, allows to set refresh token, move access token logic to serverside
 const redirect_uri = 'http://localhost:' + process.env.PORT + '/callback';
 
 
 //First API call for O-Auth
   //Sends random string as state, along with credentials to request access to data (prompts user to login to their account)
 let login = (req, res) => {
+
   let buildRandomString = (length) => {
     let str = '';
     let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -63,36 +64,41 @@ let getAccessToken = (req, res) => {
       json: true
     }
 
-    request.post(authOptions, (err, response, body) => {
-      if (response.statusCode !== 200 || err) {
-        console.log('error: ', err);
-        res.redirect('/#' +
-        querystring.stringify({
-            error: 'invalid_token'
+    request.post(authOptions, (error, response, body) => {
+       if (!error && response.statusCode === 200) {
+          let access_token = body.access_token;
+          let refresh_token = body.refresh_token;
+
+          let options = {
+            url: 'https://api/spotify.com/v1/me',
+            headers: { 'Authorization': 'Bearer' + access_token },
+            json: true
+          };
+
+          //use access token to access the Spotify APi
+          request.get(options, (error, response, body) => {
+            if (error) {
+              console.log(error);
+            }
+              console.log("response", response)
+
           })
+
+          res.redirect('/#' +
+              querystring.stringify({
+                access_token: access_token,
+                refresh_token: refresh_token
+              })
+            );
+
+
+        } else {
+          console.log('error: ', err);
+          res.redirect('/#' +
+            querystring.stringify({
+              error: 'invalid_token'
+            })
           );
-
-      } else {
-        let access_token = body.access_token;
-        let refresh_token = body.refresh_token;
-
-        let options = {
-          url: 'https://api/spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer' + access_token },
-          json: true
-        }
-
-        //use access token to access the Spotify APi
-        request.get(options, (err, response, body) => {
-          console.log("body", body);
-          console.log("response", response)
-        })
-
-        res.redirect('http://localhost:3001/#' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
         }
     })
   }

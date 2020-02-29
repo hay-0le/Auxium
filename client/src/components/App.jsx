@@ -1,15 +1,18 @@
+// import $ from 'jquery';
+// import queryString from 'query-string';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import $ from 'jquery';
 import axios from 'axios';
 import Player from './Player.jsx';
-import queryString from 'query-string';
 import PlaylistContainer from './PlaylistContainer.jsx';
 import SearchResults from './SearchResults.jsx';
 
+
 // require('dotenv').config();
 var Spotify = require('spotify-web-api-js');
+var Q = require('q')
 var spotifyAPI = new Spotify();
+spotifyAPI.setPromiseImplementation(Q);
 
 class App extends React.Component {
   constructor(props) {
@@ -18,44 +21,48 @@ class App extends React.Component {
     this.state = {
       loggedIn: false,
       user: null,
+      userid: null,
       refresh_token: null,
       currentSong: null,
-      currentPlaylist: [],
-      currentPlaylistName: null,
-      playlists: [],
-      lastPlaylistId: 1,
+      currentPlaylistSongs: [],
+      currentPlaylist: null,
+      currentPlaylistId: null,
+      playlists: null,
       currentSearchResults: []
     }
 
-    // this.getPlaylist = this.getPlaylist.bind(this);
-    // this.playSong = this.playSong.bind(this);
+    this.getPlaylist = this.getPlaylist.bind(this);
     this.login = this.login.bind(this);
     this.searchHandler = this.searchHandler.bind(this);
     this.refreshAccess = this.refreshAccess.bind(this);
     this.resultsHandler = this.resultsHandler.bind(this);
     this.createPlaylist = this.createPlaylist.bind(this);
-    this.savePlaylist = this.savePlaylist.bind(this);
+    this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
+    this.getAllPlaylists = this.getAllPlaylists.bind(this);
+    this.changePlaylist = this.changePlaylist.bind(this);
+    this.getUserData = this.getUserData.bind(this);
+    this.getSpotifyUser = this.getSpotifyUser.bind(this);
   }
+
 
   login(e) {
     e.preventDefault();
-
     console.log("clicked")
-    // axios.get('http:/login')
-    //   .then(response => {
-    //     console.log("Response", response)
+
+    // axios.get('http://localhost:3001/login')
+    //   .then(() => {
+    //     console.log("Success logging in");
     //   })
     //   .catch(err => {
-    //     console.log("Error:", err)
+    //     console.log("Error logging in", err)
     //   })
-    window.location = 'http://localhost:3001/login'
+    window.location = '/login';
   }
 
 
   refreshAccess() {
     let refresh_token = this.state.refresh_token;
-    // console.log("refreshing access with token:", refresh_token)
-
+    console.log("refreh", refresh_token)
     axios.get(`http://localhost:3001/refresh_token`, {
       params: {
         refresh_token: refresh_token
@@ -69,7 +76,6 @@ class App extends React.Component {
     .catch((error) => {
       console.log(error);
     })
-
   }
 
 
@@ -84,6 +90,7 @@ class App extends React.Component {
     return hashParams;
   }
 
+
   //searhes spotify (will eventually be able to chose to search songs, artists, or albums specifically)
   searchHandler() {
     let newSong = document.getElementById('addSong').value;
@@ -91,7 +98,7 @@ class App extends React.Component {
     spotifyAPI.searchTracks(newSong)
       .then((data) => {
         let searchResults = data.tracks.items;
-
+//TODO: get search results out of state
         this.setState({
           currentSearchResults: searchResults
         })
@@ -116,77 +123,64 @@ class App extends React.Component {
     let songId = e.target.id;
     let newSong = this.state.currentSearchResults[songId];
 
-    let updatedPlaylist = this.state.currentPlaylist
-    updatedPlaylist.push(newSong);
-
-    console.log(this.state.currentPlaylist)
-    this.setState({
-      currentPlaylist: updatedPlaylist
-    })
-
+    //TODO turn into async/await so song isn't added to state until its added to db
     //update playlist by adding song to db
-    this.savePlaylist(newSong);
+    this.addSongToPlaylist(newSong)
+
+    // let updatedPlaylist = this.state.currentPlaylistSongs
+    // updatedPlaylist.push(newSong);
+
+    // console.log(this.state.currentPlaylistSongs)
+    // this.setState({
+    //   currentPlaylistSongs: updatedPlaylist
+    // })
 
   }
 
 
-  savePlaylist (newSong) {
-    console.log("save playlist:", this.state.currentPlaylist)
+  addSongToPlaylist (newSong) {
+console.log("ASDASD", this.state.currentPlaylistId)
     axios.post(`http://localhost:3001/db/update_playlist`, {
       params: {
-        playlist: this.state.currentPlaylistName,
+        playlist: this.state.currentPlaylist,
+        playlistid: this.state.currentPlaylistId,
         song: newSong
       }
     })
-    .then((response) => {
-      console.log("Success saving playlist to database: ", response)
-      //refresh page?
+    .then((newSong) => {
+      console.log("Success saving playlist to database: ", newSong)
+      let updatedPlaylist = this.state.currentPlaylistSongs;
+
+      updatedPlaylist.push(newSong.data);
+      this.setState({
+      currentPlaylistSongs: updatedPlaylist
+    })
 
     })
     .catch((error) => {
-      console.log("Error adding updating playlist to database:", error);
+      console.log("Error updating playlist in database:", error);
     })
   }
-
-
-  // getPlaylist(playlist='main') {
-  //   axios.get('/db/update_playlist', {
-  //     params: {
-  //       playlist: playlist
-  //     }
-  //   })
-  //     .then(results => {
-  //       let nowPlaying = results.data[0];
-
-  //       this.setState({
-  //         currentPlaylist: results.data,
-  //         currentSong: nowPlaying,
-  //         currentPlaylistName: playlist
-  //       })
-  //     })
-  //     .catch(err => {
-  //       console.log(err)
-  //     })
-  // }
 
 
   createPlaylist() {
     let newPlaylist = document.getElementById('add-playlist').value;
-    let newPlaylistId = this.state.lastPlaylistId;
 
     axios.post(`http://localhost:3001/db/create_playlist`, {
       params: {
         newPlaylist: newPlaylist,
-        newPlaylistId: newPlaylistId
+        userid: this.state.userid
       }
     }).then(data => {
-      //increment lastplaylist id
       let updatedPlaylists = this.state.playlists;
       updatedPlaylists.push(newPlaylist);
 
+      //if no current playlist, set it to newPlaylist, else keep it the same
+      let currentPlaylistS = this.state.currentPlaylist || newPlaylist;
+
       this.setState({
-        lastPlaylistId: newPlaylistId + 1,
-        playlists: updatedPlaylists
+        playlists: updatedPlaylists,
+        currentPlaylist: currentPlaylist
 
       })
       //add new playlist to playlists in state
@@ -198,63 +192,141 @@ class App extends React.Component {
   }
 
 
-  // getNowPlaying () {
-  //   spotifyWebApi.getMyCurrentPlaybackState()
-  //     .then(result => {
-  //       // this.setState({
-  //       //   currentSong:
-  //       // })
-  //       console.log(result);
-  //     })
-  // }
+  async changePlaylist (e) {
+    e.preventDefault();
+
+    let nextPlaylist = e.target.innerHTML;
+    let nextPlaylistId = e.target.id;
+
+    this.getPlaylist(nextPlaylistId)
+      .then(songs => {
+        console.log("Songs", songs)
+
+        this.setState({
+          currentPlaylist: nextPlaylist,
+          currentPlaylistSongs: songs
+        })
+      })
+
+  }
 
 
-  // playSong(e) {
-  //   e.preventDefault();
+  getUserData() {
+    return new Promise((resolve, reject) => {
+      spotifyAPI.getMe()
+      .then(userData => {
 
-  //   let songId = e.target.id;
-  //   let playSong = this.state.songs[songId];
+        if (userData) {
+          let userAndID = {
+            user: userData.display_name,
+            userid: userData.id
+          }
+          resolve(userAndID)
 
-  //   this.setState({
-  //     currentSong: playSong
-  //   })
-  // }
+        } else {
+          console.log("Error getting user data from spotify")
+        }
+      })
+    })
+  }
+
+
+  getPlaylist (playlistid) {
+    return axios.post(`http://localhost:3001/db/get_playlist`, {
+        nextPlaylistId: playlistid
+      })
+      .then(songs => {
+        songs = songs.data;
+
+        if (songs.length === 0) {
+          console.log("There are no songs in this playlist")
+          return [];
+
+        } else {
+          return songs;
+        }
+      })
+      .catch(err => {
+        console.log("ERROR getting playlist: ", err);
+      })
+  }
+
+
+  getAllPlaylists (userid, username) {
+    return axios.post('/db/get_all_playlists', {
+        userid, username
+      })
+      .then(data => {
+        return data.data;
+      })
+      .catch(err => {
+        console.log("ERROR retreiving playlists:", err)
+      })
+  }
+// <3
+
+  getSpotifyUser(){
+    return this.getUserData().then((data) => {
+      return data;
+    })
+    .catch(err => {
+      console.log("Error retreiving user, and playlists", err)
+    })
+  }
 
 
   componentDidMount() {
+
     let access_token = this.getHashParams().access_token;
     let refresh_token = this.getHashParams().refresh_token;
 
-    if (access_token) {
-      this.setState({
-        loggedIn: true,
-        user: 'haley',
-        refresh_token: refresh_token
-      })
-      spotifyAPI.setAccessToken(access_token);
+    spotifyAPI.setAccessToken(access_token);
+
+    if (this.state.loggedIn === false && access_token) {
+
+      this.getSpotifyUser()
+        .then(async (userData)=>{
+          const musicData = await this.getAllPlaylists(userData.userid, userData.user);
+
+          return { musicData, userData };
+        })
+        .then((data) => {
+          const { playlists, songs } = data.musicData;
+          const { user, userid } = data.userData;
+console.log("SONGS", songs)
+console.log("Playlists:", playlists)
+
+          this.setState({
+            loggedIn: true,
+            user: user,
+            userid: userid,
+            refresh_token: refresh_token,
+            currentPlaylistSongs: songs,
+            currentPlaylist: songs[0].playlistname,
+            currentPlaylistId: songs[0].playlistid,
+            playlists: playlists
+          })
+
+        })
+        .catch(err => {
+          console.log("ERROR in componentDidMount:", err)
+        })
     }
-
-    //get playlists, set first one to currentPlaylist in state
-      //if not playlists add default one 'Main'
-  }
-
-  componentWillUnmount() {
-    this.savePlaylist();
   }
 
   render() {
-    console.log("LOKKKKOI", this.state.currentSearchResults)
     return (
       <div id='mainpage'>
+
         {this.state.loggedIn ?
             <div>
             <Player currentSong={this.state.currentSong}/>
-            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} playlist={this.state.currentPlaylistName} songs={this.state.currentPlaylist} addPlaylist={this.createPlaylist} />
-
+            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} songs={this.state.currentPlaylistSongs} addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} />
+            <div></div>
             <div id="search">
               <div id="search-bar">
                 <div id="search-bar">
-
+                  <h4>Add a song to this playlist </h4>
                   <form className="form" id="addItemForm">
                     <input
                       type="text"
@@ -263,20 +335,18 @@ class App extends React.Component {
                       placeholder="Search the title of a song"
                     />
                     <button className="button is-info" onClick={this.searchHandler}>
-                      Add Song
+                      Search
                     </button>
                   </form>
                 </div>
               </div>
-              <SearchResults playlist={this.state.currentPlaylist} addSong={this.resultsHandler} results={this.state.currentSearchResults} />
+              <SearchResults playlist={this.state.currentPlaylistSongs} addSong={this.resultsHandler} results={this.state.currentSearchResults} />
 
             </div>
           </div>
 
-
-
-
           :
+
           <div id="spotifyLogin">
             <h2>Log In to Your Spotify</h2>
             <button id='login' onClick={this.login}>Click Here to Login</button>
