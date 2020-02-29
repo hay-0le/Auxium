@@ -139,7 +139,7 @@ class App extends React.Component {
 
 
   addSongToPlaylist (newSong) {
-
+console.log("ASDASD", this.state.currentPlaylistId)
     axios.post(`http://localhost:3001/db/update_playlist`, {
       params: {
         playlist: this.state.currentPlaylist,
@@ -147,11 +147,11 @@ class App extends React.Component {
         song: newSong
       }
     })
-    .then((song) => {
-      console.log("Success saving playlist to database: ", song)
+    .then((newSong) => {
+      console.log("Success saving playlist to database: ", newSong)
       let updatedPlaylist = this.state.currentPlaylistSongs;
 
-      updatedPlaylist.push(newSong);
+      updatedPlaylist.push(newSong.data);
       this.setState({
       currentPlaylistSongs: updatedPlaylist
     })

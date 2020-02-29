@@ -2,14 +2,14 @@ const querystring = require('querystring');
 const request = require('request');
 
 require('dotenv').config();
-
+//TODO switch to spotify-web-api-node, allows to set refresh token, move access token logic to serverside
 const redirect_uri = 'http://localhost:' + process.env.PORT + '/callback';
 
 
 //First API call for O-Auth
   //Sends random string as state, along with credentials to request access to data (prompts user to login to their account)
 let login = (req, res) => {
-  console.log("ERE")
+
   let buildRandomString = (length) => {
     let str = '';
     let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -77,6 +77,10 @@ let getAccessToken = (req, res) => {
 
           //use access token to access the Spotify APi
           request.get(options, (error, response, body) => {
+            if (error) {
+              console.log(error);
+            }
+              console.log("response", response)
 
           })
 
