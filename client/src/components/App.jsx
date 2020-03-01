@@ -42,6 +42,7 @@ class App extends React.Component {
     this.changePlaylist = this.changePlaylist.bind(this);
     this.getUserData = this.getUserData.bind(this);
     this.getSpotifyUser = this.getSpotifyUser.bind(this);
+    this.deleteSong = this.deleteSong.bind(this);
   }
 
 
@@ -192,7 +193,7 @@ console.log("ASDASD", this.state.currentPlaylistId)
   }
 
 
-  async changePlaylist (e) {
+  changePlaylist (e) {
     e.preventDefault();
 
     let nextPlaylist = e.target.innerHTML;
@@ -207,9 +208,13 @@ console.log("ASDASD", this.state.currentPlaylistId)
           currentPlaylistSongs: songs
         })
       })
-
   }
 
+  deleteSong (e) {
+    // let songId = e.target.id;
+
+    console.log("DELETING")
+  }
 
   getUserData() {
     return new Promise((resolve, reject) => {
@@ -321,7 +326,7 @@ console.log("Playlists:", playlists)
         {this.state.loggedIn ?
             <div>
             <Player currentSong={this.state.currentSong}/>
-            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} songs={this.state.currentPlaylistSongs} addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} />
+            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} songs={this.state.currentPlaylistSongs} addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} deleteSong={this.deleteSong}/>
             <div></div>
             <div id="search">
               <div id="search-bar">

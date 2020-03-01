@@ -2,7 +2,8 @@ import React from 'react';
 import SongsList from './SongsList.jsx';
 import Playlists from './Playlists.jsx';
 
-const PlaylistContainer = ({ songs, playlist, playlists, changeSong, addPlaylist, currentPlaylist, changePlaylist}) => {
+const PlaylistContainer = ({ songs, playlist, playlists, changeSong, addPlaylist, currentPlaylist, changePlaylist, deleteSong}) => {
+
 console.log("Playlist.....", currentPlaylist)
   return (
     <div id="playlistcontainer">
@@ -21,7 +22,7 @@ console.log("Playlist.....", currentPlaylist)
       </div>
     <Playlists playlists={playlists} changePlaylist={changePlaylist} />
   <h2>Songs from playlist: {currentPlaylist}</h2>
-    <SongsList changeSong={changeSong} songs={songs}/>
+    <SongsList changeSong={changeSong} deleteSong={deleteSong} songs={songs}/>
     </div>
   )
 }

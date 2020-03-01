@@ -1,6 +1,8 @@
 import React from 'react';
+import { IconButton } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
 
-const Song = ({ song, id, changeSong}) => {
+const Song = ({ song, id, changeSong, deleteSong}) => {
 // console.log("TTTT", song)
   let title = song.title;
   // let artists = song.artists.map(artist => artist.name);
@@ -11,8 +13,14 @@ const Song = ({ song, id, changeSong}) => {
   let coverArt = song.coverArt;
 
   return (
-    <div id={song.songid} onClick={changeSong}>
-      {`${id + 1}: ${title} by ${artists} - (${length} minutes)`}
+    <div class="song">
+
+    < div id={song.songid} onClick={changeSong}>
+        {`${id + 1}: ${title} by ${artists} - (${length} minutes)`}
+      <IconButton onClick={deleteSong}>
+        <DeleteIcon/>
+      </IconButton>
+      </div>
     </div>
   )
 }
