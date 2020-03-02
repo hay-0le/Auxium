@@ -1,29 +1,35 @@
 import React from 'react';
-import SongsList from './SongsList.jsx';
+import styled from 'styled-components';
+import {Form, Input, Title, Button, Header} from '../componentStyling.js';
+
 import Playlists from './Playlists.jsx';
 
-const PlaylistContainer = ({ songs, playlist, playlists, changeSong, addPlaylist, currentPlaylist, changePlaylist, deleteSong}) => {
+const PlaylistContainerStyling = styled.div`
+  padding: 20px;
+  height: 500px;
+  border: solid;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
 
-console.log("Playlist.....", currentPlaylist)
+const PlaylistContainer = ({ songs, playlist, playlists, changeSong, addPlaylist, currentPlaylist, changePlaylist, deleteSong}) => {
+console.log(addPlaylist)
+
   return (
-    <div id="playlistcontainer">
-      <div id="create-playlist">
-        <form className="form" id="add-playlist-form">
-          <input
-            type="text"
-            className="input"
-            id="add-playlist"
-            placeholder="Playlist Name"
-            />
-          <button className="button is-info" onClick={addPlaylist}>
-            Create New Playlist
-          </button>
-        </form>
-      </div>
-    <Playlists playlists={playlists} changePlaylist={changePlaylist} />
-  <h2>Songs from playlist: {currentPlaylist}</h2>
-    <SongsList changeSong={changeSong} deleteSong={deleteSong} songs={songs}/>
-    </div>
+    <PlaylistContainerStyling>
+      <Header>Your Playlists: </Header>
+      <Playlists playlists={playlists} changePlaylist={changePlaylist} />
+
+      <Form>
+          <Input type="text" id="add-playlist" placeholder="Playlist Name"  />
+          <Button type="submit" onClick={addPlaylist}>Submit</Button>
+      </Form>
+
+    </PlaylistContainerStyling>
+
+
   )
 }
 
