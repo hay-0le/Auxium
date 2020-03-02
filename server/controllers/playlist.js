@@ -11,41 +11,48 @@ const pool = new Pool({
 
 //update playlist by adding new song
 const addSong = (req, res) => {
-  console.log("Params: ", req.body.params)
   let { playlist, playlistid, song } = req.body.params;
-// console.log(playlistid, "PlaylistID")
-  let url = song.external_urls.spotify;
-  let href = song.href;
-  let title = song.name;
-  //map array of artist objects, to return array of artists names only
-  let artists = song.artists.map(artist => artist.name);
+
+  let artists = song.artists.map(artist => artist.name).reduce((artistStr, artist, i) => {
+    artistStr += artist;
+
+    if (i !== song.artists.length - 1) {
+      artistStr += ',';
+    }
+    return artistStr;
+
+  }, '');
+
   let year = song.album.release_date.slice(0, 4);
   let album = song.album.name;
   let duration = song.duration_ms;
+  let url = song.external_urls.spotify;
+  let href = song.href;
+  let title = song.name;
 
 
-    let addSongQueryString = `INSERT INTO auxium.songs (url, href, title, artists, album, year, duration) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`
+  let addSongQueryString = `INSERT INTO auxium.songs (url, href, title, artists, album, year, duration) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`
 
-    let connectSongToPlaylistQueryString = `
-    INSERT INTO auxium.playlist_song (playlistid, songid) VALUES ($1, $2)`;
+  let connectSongToPlaylistQueryString = `
+  INSERT INTO auxium.playlist_song (playlistid, songid) VALUES ($1, $2)`;
 
 
-    db.task(t => {
-      return t.one(addSongQueryString, [url, href, title, artists, album, year, duration])
-                .then(async(song) => {
-                  await t.none(connectSongToPlaylistQueryString, [playlistid, song.songid]);
+  db.task(t => {
+    return t.one(addSongQueryString, [url, href, title, artists, album, year, duration])
+              .then(async(song) => {
+                await t.none(connectSongToPlaylistQueryString, [playlistid, song.songid]);
 
-                  res.send(song);
-                })
-                .catch(err => {
-                  console.log(`ERROR adding ${title} to playlist: `, err);
-                  res.end();
-                })
-    })
-    .catch(err => {
-      console.log("ERROR with task - Adding Song: ", err);
-      res.end();
-    })
+                res.send(song);
+              })
+              .catch(err => {
+                console.log(`ERROR adding ${title} to playlist: `, err);
+                res.end();
+              })
+  })
+  .catch(err => {
+    console.log("ERROR with task - Adding Song: ", err);
+    res.end();
+  })
 
 }
 
@@ -53,29 +60,35 @@ const addSong = (req, res) => {
 //delete song from playlist
 const deleteSong = (req, res) => {
   //TO DO: Should reference song by name, or url, or id?
+  let { songid, playlistid } = req.query;
 
-  let song = req.body.params;
-  console.log("song: ", song);
+  let deleteSongQuery = `
+    DELETE FROM auxium.songs
+    WHERE songid = $1
+    RETURNING songid`;
 
-  pool.connect()
-    .then(() => {
+  let deleteSongFromPlaylistQuery = `
+    DELETE FROM auxium.playlist_song
+    WHERE songid = $1
+    RETURNING songid`;
 
-    let queryString = `DELETE FROM auxium.songs WHERE title = ${song}`;
-
-    pool.query(queryString)
-      .then(response => {
-        console.log(`Successfully deleted song ${song}`)
-      })
-      .catch(err => {
-        console.log(`ERROR deleteing song ${song}: `, error)
-      })
-
-    })
-    .catch(err => {
-      console.log("ERROR connecting to database to delete song: ", err);
-
-    })
-
+  db.task(t => {
+    return t.one(deleteSongFromPlaylistQuery, [songid, playlistid])
+              .then(async ({ songid }) => {
+                console.log("song deleted")
+                let deletedId = await t.manyOrNone(deleteSongQuery, songid);
+console.log("DELETEINGIN", deletedId)
+                res.send(deletedId);
+              })
+              .catch(err => {
+                console.log(`ERROR deleting song from playlist: `, err);
+                res.end();
+              })
+  })
+  .catch(err => {
+    console.log("ERROR with task - Adding Song: ", err);
+    res.end();
+  })
 
 
 }
@@ -126,9 +139,11 @@ const addPlaylist = (req, res) => {
 
   db.task(t => {
     return t.one(addPlaylistQueryString, [newPlaylist])
-              .then((playlistid) => {
+              .then(async (playlistid) => {
                 console.log(playlistid);
-                return t.one(connectPlaylistToUserQueryString, [userid, playlistid.playlistid])
+                let id = await t.one(connectPlaylistToUserQueryString, [userid, playlistid.playlistid])
+
+                res.send(id);
               }
               )
               .catch(err => {

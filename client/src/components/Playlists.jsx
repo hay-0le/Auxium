@@ -1,19 +1,24 @@
 import React from 'react';
+import styled from 'styled-components';
+
+const PlaylistsStyling = styled.div`
+  flex-grow: 4;
+  margin: 5px;
+`;
 
 const Playlists = ({ playlists, changePlaylist }) => {
-  // console.log("PPPPP", playlists)
-return playlists ?
+
+  return playlists ?
   (
-    <div>
-      <br/>
-      <h3>Your Playlists: </h3>
+    <PlaylistsStyling>
+
       {playlists.map((pl, i) => {
         const { playlistid, playlistname } = pl;
 
         return <div className='playlist' key={i} id={playlistid} onClick={changePlaylist}>{playlistname}</div>
       })}
 
-    </div>
+    </PlaylistsStyling>
   )
   : null;
 }

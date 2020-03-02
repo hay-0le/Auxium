@@ -1,7 +1,7 @@
 import React from 'react';
 import Song from './Song.jsx';
 
-const SongsList = ({ songs, playlist, changeSong}) => {
+const SongsContainer = ({ songs, playlist, changeSong, deleteSong, currentPlaylist }) => {
 // console.log("SINGS", songs)
 
   return (
@@ -10,8 +10,9 @@ const SongsList = ({ songs, playlist, changeSong}) => {
       {songs ?
 
       <div>
+        <h2>Songs from playlist: {currentPlaylist}</h2>
           {songs.map((song, i) => {
-            return <Song changeSong={changeSong} key={i} id={i} song={song} playlist={playlist} />
+            return <Song changeSong={changeSong} key={i} id={i} song={song} playlist={playlist} deleteSong={deleteSong}/>
           })}
         </div>
         :
@@ -24,4 +25,4 @@ const SongsList = ({ songs, playlist, changeSong}) => {
   )
 }
 
-export default SongsList;
+export default SongsContainer;

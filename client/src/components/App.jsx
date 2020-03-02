@@ -3,9 +3,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
+import styled from 'styled-components';
+import { Grid, GridItem } from 'styled-grid-component';
+
 import Player from './Player.jsx';
+import Header from './Header.jsx';
 import PlaylistContainer from './PlaylistContainer.jsx';
+import SearchPlayerContainer from './SearchPlayerContainer.jsx';
 import SearchResults from './SearchResults.jsx';
+import SongsContainer from './SongsContainer.jsx';
 
 
 // require('dotenv').config();
@@ -13,6 +19,15 @@ var Spotify = require('spotify-web-api-js');
 var Q = require('q')
 var spotifyAPI = new Spotify();
 spotifyAPI.setPromiseImplementation(Q);
+
+const MainPage = styled.div`
+  display: flex;
+`;
+
+const ContainerColumn = styled.div`
+  margin: 15px;
+`;
+
 
 class App extends React.Component {
   constructor(props) {
@@ -164,7 +179,7 @@ console.log("ASDASD", this.state.currentPlaylistId)
   }
 
 
-  createPlaylist() {
+  createPlaylist(e) {
     let newPlaylist = document.getElementById('add-playlist').value;
 
     axios.post(`http://localhost:3001/db/create_playlist`, {
@@ -175,10 +190,11 @@ console.log("ASDASD", this.state.currentPlaylistId)
     }).then(data => {
       let updatedPlaylists = this.state.playlists;
       updatedPlaylists.push(newPlaylist);
+      console.log("HEY", updatedPlaylists)
 
       //if no current playlist, set it to newPlaylist, else keep it the same
-      let currentPlaylistS = this.state.currentPlaylist || newPlaylist;
-
+      let currentPlaylist = this.state.currentPlaylist || newPlaylist;
+      console.log("CURRENTPLAYLIST", currentPlaylist)
       this.setState({
         playlists: updatedPlaylists,
         currentPlaylist: currentPlaylist
@@ -211,9 +227,27 @@ console.log("ASDASD", this.state.currentPlaylistId)
   }
 
   deleteSong (e) {
-    // let songId = e.target.id;
+    let songid = e.currentTarget.id;
 
-    console.log("DELETING")
+    return axios.delete('http://localhost:3001/db/delete_song', {
+      params: {
+        songid: songid,
+      playlistid: this.state.currentPlaylistId
+      }
+    })
+    .then(deletedId => {
+      deletedId = deletedId.data[0].songid, this.state.currentPlaylistSongs;
+
+      let songsList = this.state.currentPlaylistSongs.filter(song => song.songid !== deletedId);
+
+      this.setState({
+        currentPlaylistSongs: songsList
+      })
+
+    })
+    .catch(err => {
+      console.log("ERROR deleting song")
+    })
   }
 
   getUserData() {
@@ -321,44 +355,43 @@ console.log("Playlists:", playlists)
 
   render() {
     return (
-      <div id='mainpage'>
+
+      <div id='main'>
+        <Header />
 
         {this.state.loggedIn ?
-            <div>
-            <Player currentSong={this.state.currentSong}/>
-            <PlaylistContainer playlists={this.state.playlists} changeSong={this.playSong} songs={this.state.currentPlaylistSongs} addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} deleteSong={this.deleteSong}/>
-            <div></div>
-            <div id="search">
-              <div id="search-bar">
-                <div id="search-bar">
-                  <h4>Add a song to this playlist </h4>
-                  <form className="form" id="addItemForm">
-                    <input
-                      type="text"
-                      className="input"
-                      id="addSong"
-                      placeholder="Search the title of a song"
-                    />
-                    <button className="button is-info" onClick={this.searchHandler}>
-                      Search
-                    </button>
-                  </form>
-                </div>
-              </div>
-              <SearchResults playlist={this.state.currentPlaylistSongs} addSong={this.resultsHandler} results={this.state.currentSearchResults} />
 
+          <Grid
+            width="100%"
+            height="75vh"
+            templateColumns="repeat(6, 1fr)"
+            gap="10px"
+            autoRows="minmax(750px, auto)"
+          >
+            <GridItem column="1 / 2" row="1" id='playlist-container-column'>
+              <PlaylistContainer playlists={this.state.playlists}   addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} />
+              </GridItem>
+
+            <GridItem column="2 / 5" row="1" id='searchplayer-container-column' >
+              <SearchPlayerContainer currentSong={this.state.currentSong} playlist={this.state.currentPlaylistSongs} addSong={this.resultsHandler} results={this.state.currentSearchResults} searchHandler={this.state.searchHandler} />
+            </GridItem>
+
+            <GridItem column="5 / 8" row="1" id='songs-container-column' >
+              <SongsContainer changeSong={this.playSong} deleteSong={this.deleteSong} songs={this.state.currentPlaylistSongs} currentPlaylist={this.state.currentPlaylist} />
+            </GridItem>
+
+          </Grid>
+
+            :
+
+            <div id="spotifyLogin">
+              <h2>Log In to Your Spotify</h2>
+              <button id='login' onClick={this.login}>Click Here to Login</button>
             </div>
-          </div>
-
-          :
-
-          <div id="spotifyLogin">
-            <h2>Log In to Your Spotify</h2>
-            <button id='login' onClick={this.login}>Click Here to Login</button>
-          </div>
-          }
+        }
 
       </div>
+
     )
   }
 }
