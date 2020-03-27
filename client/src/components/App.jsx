@@ -78,7 +78,7 @@ class App extends React.Component {
 
   refreshAccess() {
     let refresh_token = this.state.refresh_token;
-    console.log("refreh", refresh_token)
+    
     axios.get(`http://localhost:3001/refresh_token`, {
       params: {
         refresh_token: refresh_token
@@ -155,7 +155,7 @@ class App extends React.Component {
 
 
   addSongToPlaylist (newSong) {
-console.log("ASDASD", this.state.currentPlaylistId)
+
     axios.post(`http://localhost:3001/db/update_playlist`, {
       params: {
         playlist: this.state.currentPlaylist,
@@ -164,7 +164,7 @@ console.log("ASDASD", this.state.currentPlaylistId)
       }
     })
     .then((newSong) => {
-      console.log("Success saving playlist to database: ", newSong)
+      
       let updatedPlaylist = this.state.currentPlaylistSongs;
 
       updatedPlaylist.push(newSong.data);
@@ -190,11 +190,10 @@ console.log("ASDASD", this.state.currentPlaylistId)
     }).then(data => {
       let updatedPlaylists = this.state.playlists;
       updatedPlaylists.push(newPlaylist);
-      console.log("HEY", updatedPlaylists)
 
       //if no current playlist, set it to newPlaylist, else keep it the same
       let currentPlaylist = this.state.currentPlaylist || newPlaylist;
-      console.log("CURRENTPLAYLIST", currentPlaylist)
+     
       this.setState({
         playlists: updatedPlaylists,
         currentPlaylist: currentPlaylist
@@ -217,7 +216,6 @@ console.log("ASDASD", this.state.currentPlaylistId)
 
     this.getPlaylist(nextPlaylistId)
       .then(songs => {
-        console.log("Songs", songs)
 
         this.setState({
           currentPlaylist: nextPlaylist,
@@ -332,8 +330,6 @@ console.log("ASDASD", this.state.currentPlaylistId)
         .then((data) => {
           const { playlists, songs } = data.musicData;
           const { user, userid } = data.userData;
-console.log("SONGS", songs)
-console.log("Playlists:", playlists)
 
           this.setState({
             loggedIn: true,
