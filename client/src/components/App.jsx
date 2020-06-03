@@ -91,7 +91,7 @@ class App extends React.Component {
 
   refreshAccess() {
     let refresh_token = this.state.refresh_token;
-    console.log("refreh", refresh_token)
+    
     axios.get(`http://localhost:3001/refresh_token`, {
       params: {
         refresh_token: refresh_token
@@ -178,6 +178,7 @@ class App extends React.Component {
       }
     })
     .then((newSong) => {
+
       let updatedPlaylist = this.state.currentPlaylistSongs;
 
       updatedPlaylist.push(newSong.data);
@@ -232,7 +233,6 @@ class App extends React.Component {
 
     this.getPlaylist(nextPlaylistId)
       .then(songs => {
-        console.log("Songs", songs)
 
         this.setState({
           currentPlaylist: nextPlaylist,
