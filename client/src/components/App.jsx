@@ -4,7 +4,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import styled from 'styled-components';
-import { Grid, GridItem } from 'styled-grid-component';
+import { ThemeProvider } from 'styled-components';
+//TODO put theme and styled together
+import Grid from 'styled-components-grid';
 
 import Player from './Player.jsx';
 import Header from './Header.jsx';
@@ -20,8 +22,19 @@ var Q = require('q')
 var spotifyAPI = new Spotify();
 spotifyAPI.setPromiseImplementation(Q);
 
+const theme = {
+  breakpoints: {
+    xs: 0,
+    sm: 576,
+    md: 768,
+    lg: 992,
+    xl: 1200
+  }
+};
+
 const MainPage = styled.div`
   display: flex;
+  box-sizing: border-box;
 `;
 
 const ContainerColumn = styled.div`
@@ -58,12 +71,12 @@ class App extends React.Component {
     this.getUserData = this.getUserData.bind(this);
     this.getSpotifyUser = this.getSpotifyUser.bind(this);
     this.deleteSong = this.deleteSong.bind(this);
+    this.playSong = this.playSong.bind(this);
   }
 
 
   login(e) {
     e.preventDefault();
-    console.log("clicked")
 
     // axios.get('http://localhost:3001/login')
     //   .then(() => {
@@ -114,7 +127,7 @@ class App extends React.Component {
     spotifyAPI.searchTracks(newSong)
       .then((data) => {
         let searchResults = data.tracks.items;
-//TODO: get search results out of state
+
         this.setState({
           currentSearchResults: searchResults
         })
@@ -155,7 +168,8 @@ class App extends React.Component {
 
 
   addSongToPlaylist (newSong) {
-console.log("ASDASD", this.state.currentPlaylistId)
+//TODO create default playlist if there is none
+
     axios.post(`http://localhost:3001/db/update_playlist`, {
       params: {
         playlist: this.state.currentPlaylist,
@@ -164,18 +178,20 @@ console.log("ASDASD", this.state.currentPlaylistId)
       }
     })
     .then((newSong) => {
-      console.log("Success saving playlist to database: ", newSong)
       let updatedPlaylist = this.state.currentPlaylistSongs;
 
       updatedPlaylist.push(newSong.data);
+
       this.setState({
-      currentPlaylistSongs: updatedPlaylist
-    })
+        currentPlaylistSongs: updatedPlaylist,
+        currentSearchResults: []
+      });
 
     })
     .catch((error) => {
       console.log("Error updating playlist in database:", error);
     })
+
   }
 
 
@@ -190,17 +206,16 @@ console.log("ASDASD", this.state.currentPlaylistId)
     }).then(data => {
       let updatedPlaylists = this.state.playlists;
       updatedPlaylists.push(newPlaylist);
-      console.log("HEY", updatedPlaylists)
 
-      //if no current playlist, set it to newPlaylist, else keep it the same
+      //TODO if no current playlist, create playlist "new playlist"
       let currentPlaylist = this.state.currentPlaylist || newPlaylist;
-      console.log("CURRENTPLAYLIST", currentPlaylist)
+
       this.setState({
         playlists: updatedPlaylists,
         currentPlaylist: currentPlaylist
 
       })
-      //add new playlist to playlists in state
+      //TODO add new playlist to playlists in state
       //if no current playlist, set it
     })
     .catch(err => {
@@ -249,6 +264,12 @@ console.log("ASDASD", this.state.currentPlaylistId)
       console.log("ERROR deleting song")
     })
   }
+
+  playSong (e) {
+    let songid = e.currentTarget.id;
+  }
+
+
 
   getUserData() {
     return new Promise((resolve, reject) => {
@@ -332,8 +353,6 @@ console.log("ASDASD", this.state.currentPlaylistId)
         .then((data) => {
           const { playlists, songs } = data.musicData;
           const { user, userid } = data.userData;
-console.log("SONGS", songs)
-console.log("Playlists:", playlists)
 
           this.setState({
             loggedIn: true,
@@ -341,8 +360,8 @@ console.log("Playlists:", playlists)
             userid: userid,
             refresh_token: refresh_token,
             currentPlaylistSongs: songs,
-            currentPlaylist: songs[0].playlistname,
-            currentPlaylistId: songs[0].playlistid,
+            // currentPlaylist: songs[0].playlistname,
+            // currentPlaylistId: songs[0].playlistid,
             playlists: playlists
           })
 
@@ -361,26 +380,20 @@ console.log("Playlists:", playlists)
 
         {this.state.loggedIn ?
 
-          <Grid
-            width="100%"
-            height="75vh"
-            templateColumns="repeat(6, 1fr)"
-            gap="10px"
-            autoRows="minmax(750px, auto)"
-          >
-            <GridItem column="1 / 2" row="1" id='playlist-container-column'>
-              <PlaylistContainer playlists={this.state.playlists}   addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} />
-              </GridItem>
+            <Grid>
+              <Grid.Unit size={ 1 / 6 } id='playlist-container-column'>
+                <PlaylistContainer playlists={this.state.playlists}   addPlaylist={this.createPlaylist} currentPlaylist={this.state.currentPlaylist} changePlaylist={this.changePlaylist} />
+                </Grid.Unit>
 
-            <GridItem column="2 / 5" row="1" id='searchplayer-container-column' >
-              <SearchPlayerContainer currentSong={this.state.currentSong} playlist={this.state.currentPlaylistSongs} addSong={this.resultsHandler} results={this.state.currentSearchResults} searchHandler={this.state.searchHandler} />
-            </GridItem>
+              <Grid.Unit size={ 1 / 3 } id='searchplayer-container-column' >
+                <SearchPlayerContainer currentSong={this.state.currentSong} playlist={this.state.currentPlaylistSongs} addSong={this.resultsHandler} results={this.state.currentSearchResults} searchHandler={this.searchHandler} />
+              </Grid.Unit>
 
-            <GridItem column="5 / 8" row="1" id='songs-container-column' >
-              <SongsContainer changeSong={this.playSong} deleteSong={this.deleteSong} songs={this.state.currentPlaylistSongs} currentPlaylist={this.state.currentPlaylist} />
-            </GridItem>
+              <Grid.Unit size={ 1 / 5 } id='songs-container-column' >
+                <SongsContainer changeSong={this.playSong} deleteSong={this.deleteSong} songs={this.state.currentPlaylistSongs} currentPlaylist={this.state.currentPlaylist} />
+              </Grid.Unit>
 
-          </Grid>
+            </Grid>
 
             :
 
