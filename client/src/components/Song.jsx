@@ -24,10 +24,10 @@ const Song = ({ song, id, changeSong, deleteSong}) => {
 
   return (
 
-    <SongDiv id={song.songid} onClick={changeSong} onClick={deleteSong}>
+    <SongDiv id={song.songid} onClick={changeSong} >
         {`${id + 1}: ${title} by ${artists} - (${length} minutes)`}
 
-      <IconButton id={song.songid} variant="outlined" >
+      <IconButton id={song.songid} variant="outlined" onClick={deleteSong}>
         <DeleteIcon/>
       </IconButton>
       </SongDiv>
